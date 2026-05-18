@@ -548,7 +548,7 @@
     </div>
 
     <div>
-      <h1 id="dog-name" contenteditable="true" spellcheck="false">Her Name</h1>
+      <h1 id="dog-name" contenteditable="true" spellcheck="false">Elsa</h1>
     </div>
 
     <div class="hero-years">
@@ -768,24 +768,20 @@
     const nameRefs = document.querySelectorAll('.dog-name-ref');
 
     function updateName() {
-      const name = nameEl.textContent.trim() || 'Her';
-      nameRefs.forEach(el => {
-        // possessive check — footer says "for [name] and…"
-        el.textContent = name;
-      });
+      const name = nameEl.textContent.trim() || 'Elsa';
+      nameRefs.forEach(el => { el.textContent = name; });
     }
 
     nameEl.addEventListener('input', updateName);
 
-    nameEl.addEventListener('focus', function () {
-      if (this.textContent === 'Her Name') this.textContent = '';
-    });
     nameEl.addEventListener('blur', function () {
       if (!this.textContent.trim()) {
-        this.textContent = 'Her Name';
+        this.textContent = 'Elsa';
         updateName();
       }
     });
+
+    updateName();
 
     // ── Hero photo ──
     const heroFile = document.getElementById('hero-file');
