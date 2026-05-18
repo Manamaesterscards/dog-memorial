@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>In Loving Memory</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:       #FDF6EC;
+      --amber:       #C8863A;
+      --amber-light: #E8A85A;
+      --amber-pale:  #FBF0E0;
+      --sage:        #7A9E7E;
+      --rose:        #C4736A;
+      --brown-dark:  #3D2B1F;
+      --brown-med:   #6B4F3A;
+      --brown-light: #9C7A5E;
+      --card:        #FFFBF5;
+      --border:      #E8D5B7;
+      --shadow:      rgba(61,43,31,0.09);
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--brown-dark);
+      font-family: Georgia, 'Times New Roman', serif;
+      line-height: 1.75;
+    }
+
+    /* ── Print bar ── */
+    .print-bar {
+      background: var(--brown-dark);
+      text-align: center;
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .print-bar p {
+      color: rgba(255,255,255,0.55);
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+    }
+    .print-btn {
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      font-family: system-ui, sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 8px 22px;
+      border-radius: 100px;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.2s;
+    }
+    .print-btn:hover { background: var(--amber-light); }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(160deg, #2E1F15 0%, #5C3D28 60%, #3D2B1F 100%);
+      text-align: center;
+      padding: 72px 24px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-paws {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cellipse cx='18' cy='18' rx='7' ry='9' fill='%23C8863A' opacity='.15'/%3E%3Cellipse cx='32' cy='12' rx='7' ry='9' fill='%23C8863A' opacity='.15'/%3E%3Cellipse cx='48' cy='12' rx='7' ry='9' fill='%23C8863A' opacity='.15'/%3E%3Cellipse cx='62' cy='18' rx='7' ry='9' fill='%23C8863A' opacity='.15'/%3E%3Cellipse cx='40' cy='46' rx='18' ry='16' fill='%23C8863A' opacity='.15'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .hero-photo-wrap {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 4px solid var(--amber);
+      margin: 0 auto 32px;
+      cursor: pointer;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 0 8px rgba(200,134,58,0.15);
+    }
+    .hero-photo-wrap:hover {
+      border-color: var(--amber-light);
+      box-shadow: 0 0 0 8px rgba(200,134,58,0.25);
+    }
+    #hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    .hero-photo-hint {
+      color: rgba(255,255,255,0.55);
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 16px;
+      line-height: 1.4;
+      pointer-events: none;
+    }
+    .hero-photo-icon {
+      font-size: 1.6rem;
+      pointer-events: none;
+    }
+
+    #dog-name {
+      display: inline-block;
+      font-size: 3rem;
+      color: #fff;
+      font-style: italic;
+      margin-bottom: 10px;
+      outline: none;
+      border-bottom: 2px dashed rgba(200,134,58,0.5);
+      padding: 4px 12px;
+      min-width: 220px;
+      transition: border-color 0.2s;
+      cursor: text;
+    }
+    #dog-name:focus { border-bottom-color: var(--amber-light); }
+
+    .hero-years {
+      color: var(--amber-light);
+      font-size: 1.05rem;
+      margin-bottom: 18px;
+      letter-spacing: 0.05em;
+    }
+    .hero-years span {
+      display: inline-block;
+      border-bottom: 1px dashed rgba(232,168,90,0.5);
+      min-width: 40px;
+      outline: none;
+      padding: 2px 6px;
+      cursor: text;
+    }
+    .hero-years span:focus { border-bottom-color: var(--amber-light); }
+
+    .hero-tagline {
+      color: rgba(255,255,255,0.65);
+      font-style: italic;
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Section wrapper ── */
+    .section {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 64px 24px;
+    }
+    .section-title {
+      font-size: 1.6rem;
+      color: var(--amber);
+      text-align: center;
+      margin-bottom: 36px;
+      font-style: italic;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Paw divider ── */
+    .paw-row {
+      text-align: center;
+      padding: 4px 0;
+      color: var(--amber);
+      font-size: 1rem;
+      opacity: 0.45;
+    }
+
+    /* ── Understanding Goodbye ── */
+    .goodbye-band {
+      background: linear-gradient(180deg, #fff8f0 0%, #fdf6ec 100%);
+      border-top: 3px solid var(--amber);
+      border-bottom: 3px solid var(--amber);
+    }
+    .goodbye-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 44px 48px;
+      max-width: 700px;
+      margin: 0 auto;
+      box-shadow: 0 6px 32px var(--shadow);
+    }
+    .goodbye-card .paw-center {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .goodbye-card p {
+      font-size: 1.05rem;
+      color: var(--brown-med);
+      margin-bottom: 18px;
+      line-height: 1.85;
+    }
+    .goodbye-card p:last-child { margin-bottom: 0; }
+    .goodbye-card em { color: var(--brown-dark); font-weight: 600; }
+    .goodbye-card .highlight-name {
+      font-style: italic;
+      font-weight: bold;
+      color: var(--brown-dark);
+    }
+
+    /* ── About Her cards ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .about-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px 24px;
+      box-shadow: 0 3px 14px var(--shadow);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .about-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--shadow);
+    }
+    .about-card .card-emoji {
+      font-size: 1.9rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .about-card .card-label {
+      font-family: system-ui, sans-serif;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--amber);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .card-field {
+      display: block;
+      width: 100%;
+      min-height: 56px;
+      outline: none;
+      font-family: Georgia, serif;
+      font-size: 0.98rem;
+      color: var(--brown-light);
+      border-bottom: 1px dashed var(--border);
+      padding: 4px 2px 8px;
+      transition: border-color 0.2s, color 0.2s;
+      cursor: text;
+    }
+    .card-field:focus {
+      border-bottom-color: var(--amber);
+      color: var(--brown-dark);
+    }
+    .card-field.filled { color: var(--brown-dark); }
+
+    /* ── Memory cards ── */
+    .memories-band { background: #fff8f0; }
+    .memories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+    }
+    .memory-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 3px 16px var(--shadow);
+    }
+    .mem-photo-slot {
+      width: 100%;
+      height: 210px;
+      background: linear-gradient(160deg, #f0e4d0 0%, #e8d8c0 100%);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+    .mem-photo-slot:hover { background: linear-gradient(160deg, #e8daca 0%, #e0d0b8 100%); }
+    .mem-photo-slot img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    .mem-photo-hint {
+      color: var(--brown-light);
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    .mem-photo-icon {
+      font-size: 1.4rem;
+      pointer-events: none;
+    }
+    .mem-body { padding: 20px 22px 22px; }
+    .mem-title {
+      width: 100%;
+      border: none;
+      border-bottom: 1px dashed var(--border);
+      background: transparent;
+      font-family: Georgia, serif;
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: var(--brown-dark);
+      padding: 4px 2px 8px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .mem-title:focus { border-bottom-color: var(--amber); }
+    .mem-story {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-family: Georgia, serif;
+      font-size: 0.93rem;
+      color: var(--brown-med);
+      resize: none;
+      min-height: 72px;
+      outline: none;
+      line-height: 1.75;
+    }
+
+    /* ── Gallery ── */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .gallery-slot {
+      aspect-ratio: 1;
+      background: linear-gradient(160deg, #f0e4d0 0%, #e8d8c0 100%);
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 2px dashed var(--border);
+      position: relative;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .gallery-slot:hover {
+      border-color: var(--amber);
+      background: linear-gradient(160deg, #e8daca 0%, #e0d0b8 100%);
+    }
+    .gallery-slot img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    .gallery-paw {
+      width: 44px;
+      height: 44px;
+      opacity: 0.22;
+    }
+
+    /* ── Letter ── */
+    .letter-band { background: var(--amber-pale); }
+    .letter-paper {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 44px 48px 44px 72px;
+      box-shadow: 0 4px 24px var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .letter-paper::before {
+      content: '';
+      position: absolute;
+      left: 56px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(200,134,58,0.2);
+    }
+    .letter-lines {
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        transparent,
+        transparent 31px,
+        rgba(200,134,58,0.07) 31px,
+        rgba(200,134,58,0.07) 32px
+      );
+      background-position: 0 44px;
+      pointer-events: none;
+    }
+    .letter-prompt {
+      font-style: italic;
+      color: var(--rose);
+      margin-bottom: 20px;
+      font-size: 1.02rem;
+    }
+    .letter-textarea {
+      width: 100%;
+      min-height: 224px;
+      border: none;
+      background: transparent;
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      color: var(--brown-dark);
+      line-height: 2;
+      outline: none;
+      resize: vertical;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Remember list ── */
+    .remember-band { background: #fff8f0; }
+    .remember-list { list-style: none; }
+    .remember-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .remember-paw {
+      flex-shrink: 0;
+      font-size: 1rem;
+      opacity: 0.6;
+    }
+    .remember-input {
+      flex: 1;
+      border: none;
+      border-bottom: 1px dashed var(--border);
+      background: transparent;
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      color: var(--brown-dark);
+      padding: 7px 2px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .remember-input:focus { border-bottom-color: var(--amber); }
+    .add-btn {
+      display: block;
+      margin: 24px auto 0;
+      background: none;
+      border: 2px solid var(--amber);
+      color: var(--amber);
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      padding: 10px 32px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .add-btn:hover { background: var(--amber); color: #fff; }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--brown-dark);
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      padding: 48px 24px 40px;
+      font-style: italic;
+      font-size: 1.05rem;
+      line-height: 1.8;
+    }
+    .footer .name-ref { color: var(--amber-light); }
+    .footer .paw-trail {
+      margin-top: 16px;
+      font-size: 1rem;
+      opacity: 0.35;
+      letter-spacing: 0.2em;
+    }
+
+    /* ── @media print ── */
+    @media print {
+      .print-bar { display: none !important; }
+      .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .goodbye-band { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .memories-band { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      [contenteditable] { border: none !important; }
+      input, textarea { border: none !important; }
+      .hero-photo-hint, .mem-photo-hint, .mem-photo-icon, .hero-photo-icon { display: none; }
+      .add-btn { display: none; }
+      .gallery-slot { border-style: solid; }
+      .about-card:hover { transform: none; box-shadow: 0 3px 14px var(--shadow); }
+      .letter-paper { break-inside: avoid; }
+      .goodbye-card { break-inside: avoid; }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      #dog-name { font-size: 2.2rem; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .goodbye-card { padding: 28px 22px; }
+      .letter-paper { padding: 32px 24px 32px 44px; }
+      .letter-paper::before { left: 36px; }
+      .section { padding: 48px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Print bar -->
+  <div class="print-bar">
+    <p>Fill in your memories, add photos, then print as a keepsake</p>
+    <button class="print-btn" onclick="window.print()">&#128438; Print Keepsake</button>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       1. HERO
+  ══════════════════════════════════════════ -->
+  <div class="hero">
+    <div class="hero-paws"></div>
+
+    <input type="file" id="hero-file" accept="image/*" style="display:none">
+    <div class="hero-photo-wrap" id="hero-photo-wrap" onclick="document.getElementById('hero-file').click()">
+      <img id="hero-img" alt="Photo of her">
+      <div class="hero-photo-icon" id="hero-icon">&#128247;</div>
+      <div class="hero-photo-hint" id="hero-hint">Click to add<br>her photo</div>
+    </div>
+
+    <div>
+      <h1 id="dog-name" contenteditable="true" spellcheck="false">Her Name</h1>
+    </div>
+
+    <div class="hero-years">
+      <span id="birth-year" contenteditable="true" spellcheck="false">20__</span>
+      &nbsp;&mdash;&nbsp;
+      <span id="end-year" contenteditable="true" spellcheck="false">2025</span>
+    </div>
+
+    <div class="hero-tagline">Forever loved. Forever remembered.</div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       2. UNDERSTANDING GOODBYE
+  ══════════════════════════════════════════ -->
+  <div class="goodbye-band">
+    <div class="section">
+      <h2 class="section-title">Understanding Goodbye</h2>
+      <div class="goodbye-card">
+        <div class="paw-center">
+          <svg width="52" height="52" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="20" cy="20" rx="10" ry="13" fill="#C8863A"/>
+            <ellipse cx="40" cy="13" rx="10" ry="13" fill="#C8863A"/>
+            <ellipse cx="60" cy="13" rx="10" ry="13" fill="#C8863A"/>
+            <ellipse cx="80" cy="20" rx="10" ry="13" fill="#C8863A"/>
+            <ellipse cx="50" cy="62" rx="27" ry="24" fill="#C8863A"/>
+          </svg>
+        </div>
+
+        <p><span class="highlight-name dog-name-ref">She</span> is very sick.
+        The sickness is hurting her body, and the medicine that helps most animals feel better
+        isn&rsquo;t able to help her anymore.</p>
+
+        <p>Tomorrow, the vet is going to give her something special that will let her fall into
+        a very deep, peaceful sleep &mdash; so she won&rsquo;t feel any more pain. It will happen
+        gently and quietly, and she will feel safe and loved, with the people who love her most
+        right beside her.</p>
+
+        <p>This is one of the hardest things a family ever has to do. But choosing this for her
+        &mdash; so she doesn&rsquo;t have to hurt anymore &mdash; is one of the <em>most loving</em>
+        things you can do for someone you care about. It&rsquo;s okay if it doesn&rsquo;t feel
+        that way right now. It shows how much you love her.</p>
+
+        <p>It&rsquo;s okay to cry. It&rsquo;s okay to feel sad, or angry, or confused, or even
+        all of those things at once. Those feelings all mean the same thing: <em>you loved her.</em>
+        And that love doesn&rsquo;t disappear. It stays with you.</p>
+
+        <p>Every time you think of her &mdash; the way she smelled, the sound she made when she
+        was happy, her favorite spot, the way she looked at you &mdash; that&rsquo;s her, still
+        right there with you. She will always be part of your family. Always.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       3. ALL ABOUT HER
+  ══════════════════════════════════════════ -->
+  <div>
+    <div class="section">
+      <h2 class="section-title">All About <span class="dog-name-ref">Her</span></h2>
+      <div class="cards-grid">
+
+        <div class="about-card">
+          <span class="card-emoji">🧸</span>
+          <div class="card-label">Favorite Toy</div>
+          <div class="card-field" contenteditable="true" data-placeholder="What did she love to play with?">What did she love to play with?</div>
+        </div>
+
+        <div class="about-card">
+          <span class="card-emoji">🛋️</span>
+          <div class="card-label">Favorite Spot</div>
+          <div class="card-field" contenteditable="true" data-placeholder="Her favorite place in the house...">Her favorite place in the house...</div>
+        </div>
+
+        <div class="about-card">
+          <span class="card-emoji">😄</span>
+          <div class="card-label">Funniest Moment</div>
+          <div class="card-field" contenteditable="true" data-placeholder="What made everyone laugh?">What made everyone laugh?</div>
+        </div>
+
+        <div class="about-card">
+          <span class="card-emoji">⭐</span>
+          <div class="card-label">What Made Her Special</div>
+          <div class="card-field" contenteditable="true" data-placeholder="She was one of a kind because...">She was one of a kind because...</div>
+        </div>
+
+        <div class="about-card">
+          <span class="card-emoji">🦴</span>
+          <div class="card-label">Favorite Treat</div>
+          <div class="card-field" contenteditable="true" data-placeholder="What snack made her tail go crazy?">What snack made her tail go crazy?</div>
+        </div>
+
+        <div class="about-card">
+          <span class="card-emoji">🐶</span>
+          <div class="card-label">Her Signature Move</div>
+          <div class="card-field" contenteditable="true" data-placeholder="Her famous silly habit...">Her famous silly habit...</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       4. FAVORITE MEMORIES
+  ══════════════════════════════════════════ -->
+  <div class="memories-band">
+    <div class="section">
+      <h2 class="section-title">Our Favorite Memories</h2>
+      <div class="memories-grid">
+
+        <div class="memory-card">
+          <input type="file" class="mem-file" accept="image/*" style="display:none">
+          <div class="mem-photo-slot" onclick="this.previousElementSibling.click()">
+            <img alt="Memory photo">
+            <div class="mem-photo-icon">📷</div>
+            <div class="mem-photo-hint">Click to add a photo</div>
+          </div>
+          <div class="mem-body">
+            <input class="mem-title" type="text" placeholder="Give this memory a title…">
+            <textarea class="mem-story" placeholder="Tell the story — what happened that day?"></textarea>
+          </div>
+        </div>
+
+        <div class="memory-card">
+          <input type="file" class="mem-file" accept="image/*" style="display:none">
+          <div class="mem-photo-slot" onclick="this.previousElementSibling.click()">
+            <img alt="Memory photo">
+            <div class="mem-photo-icon">📷</div>
+            <div class="mem-photo-hint">Click to add a photo</div>
+          </div>
+          <div class="mem-body">
+            <input class="mem-title" type="text" placeholder="Give this memory a title…">
+            <textarea class="mem-story" placeholder="Tell the story — what happened that day?"></textarea>
+          </div>
+        </div>
+
+        <div class="memory-card">
+          <input type="file" class="mem-file" accept="image/*" style="display:none">
+          <div class="mem-photo-slot" onclick="this.previousElementSibling.click()">
+            <img alt="Memory photo">
+            <div class="mem-photo-icon">📷</div>
+            <div class="mem-photo-hint">Click to add a photo</div>
+          </div>
+          <div class="mem-body">
+            <input class="mem-title" type="text" placeholder="Give this memory a title…">
+            <textarea class="mem-story" placeholder="Tell the story — what happened that day?"></textarea>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       5. PHOTO GALLERY
+  ══════════════════════════════════════════ -->
+  <div>
+    <div class="section">
+      <h2 class="section-title">Photo Gallery</h2>
+      <div class="gallery-grid" id="gallery"></div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       6. A LETTER TO HER
+  ══════════════════════════════════════════ -->
+  <div class="letter-band">
+    <div class="section">
+      <h2 class="section-title">A Letter to <span class="dog-name-ref">Her</span></h2>
+      <div class="letter-paper">
+        <div class="letter-lines"></div>
+        <div class="letter-prompt">If you could tell her one last thing&hellip;</div>
+        <textarea class="letter-textarea" placeholder="Dear girl,&#10;&#10;We want you to know that you were the best dog in the whole world…"></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       7. THINGS WE'LL ALWAYS REMEMBER
+  ══════════════════════════════════════════ -->
+  <div class="remember-band">
+    <div class="section">
+      <h2 class="section-title">Things We&rsquo;ll Always Remember</h2>
+      <ul class="remember-list" id="remember-list">
+        <li class="remember-item">
+          <span class="remember-paw">🐾</span>
+          <input class="remember-input" type="text" placeholder="The way she greeted us at the door every single day.">
+        </li>
+        <li class="remember-item">
+          <span class="remember-paw">🐾</span>
+          <input class="remember-input" type="text" placeholder="The sound of her paws on the floor…">
+        </li>
+        <li class="remember-item">
+          <span class="remember-paw">🐾</span>
+          <input class="remember-input" type="text" placeholder="How she always knew when someone was sad…">
+        </li>
+      </ul>
+      <button class="add-btn" onclick="addRemember()">+ Add Another Memory</button>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       8. FOOTER
+  ══════════════════════════════════════════ -->
+  <div class="footer">
+    <p>Made with love for <span class="dog-name-ref name-ref">her</span> and the family who will always miss her.</p>
+    <div class="paw-trail">🐾 &nbsp; 🐾 &nbsp; 🐾</div>
+  </div>
+
+
+  <script>
+    // ── Dog name: update all references as user types ──
+    const nameEl = document.getElementById('dog-name');
+    const nameRefs = document.querySelectorAll('.dog-name-ref');
+
+    function updateName() {
+      const name = nameEl.textContent.trim() || 'Her';
+      nameRefs.forEach(el => {
+        // possessive check — footer says "for [name] and…"
+        el.textContent = name;
+      });
+    }
+
+    nameEl.addEventListener('input', updateName);
+
+    nameEl.addEventListener('focus', function () {
+      if (this.textContent === 'Her Name') this.textContent = '';
+    });
+    nameEl.addEventListener('blur', function () {
+      if (!this.textContent.trim()) {
+        this.textContent = 'Her Name';
+        updateName();
+      }
+    });
+
+    // ── Hero photo ──
+    const heroFile = document.getElementById('hero-file');
+    heroFile.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('hero-img');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        document.getElementById('hero-hint').style.display = 'none';
+        document.getElementById('hero-icon').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ── Memory card photos ──
+    document.querySelectorAll('.mem-file').forEach(input => {
+      input.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const slot = this.nextElementSibling;
+        const img = slot.querySelector('img');
+        const reader = new FileReader();
+        reader.onload = e => {
+          img.src = e.target.result;
+          img.style.display = 'block';
+          slot.querySelector('.mem-photo-hint').style.display = 'none';
+          slot.querySelector('.mem-photo-icon').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // ── Gallery ──
+    const pawSVG = `<svg class="gallery-paw" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="20" cy="20" rx="10" ry="13" fill="#C8863A"/>
+      <ellipse cx="40" cy="13" rx="10" ry="13" fill="#C8863A"/>
+      <ellipse cx="60" cy="13" rx="10" ry="13" fill="#C8863A"/>
+      <ellipse cx="80" cy="20" rx="10" ry="13" fill="#C8863A"/>
+      <ellipse cx="50" cy="62" rx="27" ry="24" fill="#C8863A"/>
+    </svg>`;
+
+    const gallery = document.getElementById('gallery');
+    for (let i = 0; i < 6; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'gallery-slot';
+      slot.innerHTML = `<input type="file" accept="image/*" style="display:none"><img alt="Gallery photo">${pawSVG}`;
+      const fi = slot.querySelector('input');
+      const img = slot.querySelector('img');
+      const paw = slot.querySelector('.gallery-paw');
+      slot.addEventListener('click', () => fi.click());
+      fi.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          img.src = e.target.result;
+          img.style.display = 'block';
+          paw.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      });
+      gallery.appendChild(slot);
+    }
+
+    // ── About cards: clear placeholder on focus ──
+    document.querySelectorAll('.card-field').forEach(el => {
+      const ph = el.dataset.placeholder;
+      el.addEventListener('focus', function () {
+        if (this.textContent === ph) {
+          this.textContent = '';
+          this.classList.add('filled');
+        }
+      });
+      el.addEventListener('blur', function () {
+        if (!this.textContent.trim()) {
+          this.textContent = ph;
+          this.classList.remove('filled');
+        } else {
+          this.classList.add('filled');
+        }
+      });
+    });
+
+    // ── Add remember item ──
+    function addRemember() {
+      const list = document.getElementById('remember-list');
+      const li = document.createElement('li');
+      li.className = 'remember-item';
+      li.innerHTML = `<span class="remember-paw">🐾</span><input class="remember-input" type="text" placeholder="Another thing we'll never forget…">`;
+      list.appendChild(li);
+      li.querySelector('input').focus();
+    }
+  </script>
+</body>
+</html>
