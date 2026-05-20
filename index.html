@@ -542,9 +542,9 @@
 
     <input type="file" id="hero-file" accept="image/*" style="display:none">
     <div class="hero-photo-wrap" id="hero-photo-wrap" onclick="document.getElementById('hero-file').click()">
-      <img id="hero-img" alt="Photo of her">
-      <div class="hero-photo-icon" id="hero-icon">&#128247;</div>
-      <div class="hero-photo-hint" id="hero-hint">Click to add<br>her photo</div>
+      <img id="hero-img" alt="Elsa" src="photos/IMG_8972.jpeg" style="display:block">
+      <div class="hero-photo-icon" id="hero-icon" style="display:none">&#128247;</div>
+      <div class="hero-photo-hint" id="hero-hint" style="display:none">Click to add<br>her photo</div>
     </div>
 
     <div>
@@ -661,9 +661,9 @@
         <div class="memory-card">
           <input type="file" class="mem-file" accept="image/*" style="display:none">
           <div class="mem-photo-slot" onclick="this.previousElementSibling.click()">
-            <img alt="Memory photo">
-            <div class="mem-photo-icon">📷</div>
-            <div class="mem-photo-hint">Click to add a photo</div>
+            <img alt="Memory photo" src="photos/IMG_0904.jpeg" style="display:block">
+            <div class="mem-photo-icon" style="display:none">📷</div>
+            <div class="mem-photo-hint" style="display:none">Click to add a photo</div>
           </div>
           <div class="mem-body">
             <input class="mem-title" type="text" placeholder="Give this memory a title…">
@@ -674,9 +674,9 @@
         <div class="memory-card">
           <input type="file" class="mem-file" accept="image/*" style="display:none">
           <div class="mem-photo-slot" onclick="this.previousElementSibling.click()">
-            <img alt="Memory photo">
-            <div class="mem-photo-icon">📷</div>
-            <div class="mem-photo-hint">Click to add a photo</div>
+            <img alt="Memory photo" src="photos/IMG_5098.jpeg" style="display:block">
+            <div class="mem-photo-icon" style="display:none">📷</div>
+            <div class="mem-photo-hint" style="display:none">Click to add a photo</div>
           </div>
           <div class="mem-body">
             <input class="mem-title" type="text" placeholder="Give this memory a title…">
@@ -687,9 +687,9 @@
         <div class="memory-card">
           <input type="file" class="mem-file" accept="image/*" style="display:none">
           <div class="mem-photo-slot" onclick="this.previousElementSibling.click()">
-            <img alt="Memory photo">
-            <div class="mem-photo-icon">📷</div>
-            <div class="mem-photo-hint">Click to add a photo</div>
+            <img alt="Memory photo" src="photos/IMG_0728.jpeg" style="display:block">
+            <div class="mem-photo-icon" style="display:none">📷</div>
+            <div class="mem-photo-hint" style="display:none">Click to add a photo</div>
           </div>
           <div class="mem-body">
             <input class="mem-title" type="text" placeholder="Give this memory a title…">
@@ -826,14 +826,24 @@
       <ellipse cx="50" cy="62" rx="27" ry="24" fill="#C8863A"/>
     </svg>`;
 
+    const galleryPhotos = [
+      'photos/IMG_8972.jpeg',
+      'photos/IMG_0904.jpeg',
+      'photos/IMG_3070.jpeg',
+      'photos/IMG_5098.jpeg',
+      'photos/IMG_0728.jpeg',
+      'photos/IMG_3040.jpeg',
+    ];
+
     const gallery = document.getElementById('gallery');
-    for (let i = 0; i < 6; i++) {
+    galleryPhotos.forEach(src => {
       const slot = document.createElement('div');
       slot.className = 'gallery-slot';
-      slot.innerHTML = `<input type="file" accept="image/*" style="display:none"><img alt="Gallery photo">${pawSVG}`;
+      slot.innerHTML = `<input type="file" accept="image/*" style="display:none"><img alt="Gallery photo" src="${src}" style="display:block">${pawSVG}`;
       const fi = slot.querySelector('input');
       const img = slot.querySelector('img');
       const paw = slot.querySelector('.gallery-paw');
+      paw.style.display = 'none';
       slot.addEventListener('click', () => fi.click());
       fi.addEventListener('change', function () {
         const file = this.files[0];
@@ -847,7 +857,7 @@
         reader.readAsDataURL(file);
       });
       gallery.appendChild(slot);
-    }
+    });
 
     // ── About cards: clear placeholder on focus ──
     document.querySelectorAll('.card-field').forEach(el => {
