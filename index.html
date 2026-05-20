@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <title>In Loving Memory</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -552,6 +553,24 @@
       letter-spacing: 0.2em;
     }
 
+    /* ── Save indicator ── */
+    .save-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--brown-dark);
+      color: rgba(255,255,255,0.85);
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      padding: 8px 18px;
+      border-radius: 100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 999;
+      pointer-events: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
     /* ── @media print ── */
     @media print {
       .print-bar { display: none !important; }
@@ -806,7 +825,86 @@
   </div>
 
 
+  <div class="save-indicator" id="save-indicator"></div>
+
   <script>
+    // ── Supabase ──
+    const sb = supabase.createClient(
+      'https://ubbtuepvcqmbmckpbelp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViYnR1ZXB2Y3FtYm1ja3BiZWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzYzODgsImV4cCI6MjA5NDYxMjM4OH0.FG0YGfQnOFzFhn2wTFRfael-j52U_3Px2cBVbwb5jkI'
+    );
+
+    // ── Save indicator ──
+    const saveEl = document.getElementById('save-indicator');
+    let saveTimer;
+
+    function scheduleSave() {
+      saveEl.textContent = 'Saving…';
+      saveEl.style.opacity = '1';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(doSave, 1200);
+    }
+
+    async function doSave() {
+      const cardFields = document.querySelectorAll('.card-field');
+      const cardKeys   = ['favorite_toy','favorite_spot','funniest_moment','what_made_special','favorite_treat','signature_move'];
+      const payload    = { id: 1 };
+
+      payload.dog_name   = document.getElementById('dog-name').textContent.trim() || 'Elsa';
+      payload.birth_year = document.getElementById('birth-year').textContent.trim();
+      payload.end_year   = document.getElementById('end-year').textContent.trim();
+
+      cardKeys.forEach((key, i) => {
+        const el  = cardFields[i];
+        const val = el ? el.textContent.trim() : '';
+        payload[key] = (val === el?.dataset.placeholder) ? '' : val;
+      });
+
+      const titles  = document.querySelectorAll('.mem-title');
+      const stories = document.querySelectorAll('.mem-story');
+      [0,1,2].forEach(i => {
+        payload[`memory_${i+1}_title`] = titles[i]?.value  || '';
+        payload[`memory_${i+1}_story`] = stories[i]?.value || '';
+      });
+
+      payload.remember_items = Array.from(document.querySelectorAll('.remember-input'))
+        .map(el => el.value.trim()).filter(Boolean);
+
+      const { error } = await sb.from('elsa_memorial').upsert(payload);
+      if (!error) {
+        saveEl.textContent = '✓ Saved';
+        setTimeout(() => { saveEl.style.opacity = '0'; }, 2000);
+      }
+    }
+
+    // ── Apply state loaded from DB ──
+    function applyState(data) {
+      if (!data) return;
+      if (data.dog_name)   { nameEl.textContent = data.dog_name; updateName(); }
+      if (data.birth_year) document.getElementById('birth-year').textContent = data.birth_year;
+      if (data.end_year)   document.getElementById('end-year').textContent   = data.end_year;
+
+      const cardFields = document.querySelectorAll('.card-field');
+      ['favorite_toy','favorite_spot','funniest_moment','what_made_special','favorite_treat','signature_move'].forEach((key, i) => {
+        if (data[key] && cardFields[i]) {
+          cardFields[i].textContent = data[key];
+          cardFields[i].classList.add('filled');
+        }
+      });
+
+      const titles  = document.querySelectorAll('.mem-title');
+      const stories = document.querySelectorAll('.mem-story');
+      [0,1,2].forEach(i => {
+        if (data[`memory_${i+1}_title`]) titles[i].value  = data[`memory_${i+1}_title`];
+        if (data[`memory_${i+1}_story`]) stories[i].value = data[`memory_${i+1}_story`];
+      });
+
+      if (data.remember_items?.length) {
+        document.getElementById('remember-list').innerHTML = '';
+        data.remember_items.forEach(val => addRemember(val));
+      }
+    }
+
     // ── Dog name: update all references as user types ──
     const nameEl = document.getElementById('dog-name');
     const nameRefs = document.querySelectorAll('.dog-name-ref');
@@ -816,14 +914,14 @@
       nameRefs.forEach(el => { el.textContent = name; });
     }
 
-    nameEl.addEventListener('input', updateName);
+    nameEl.addEventListener('input', () => { updateName(); scheduleSave(); });
 
     nameEl.addEventListener('blur', function () {
-      if (!this.textContent.trim()) {
-        this.textContent = 'Elsa';
-        updateName();
-      }
+      if (!this.textContent.trim()) { this.textContent = 'Elsa'; updateName(); }
     });
+
+    document.getElementById('birth-year').addEventListener('input', scheduleSave);
+    document.getElementById('end-year').addEventListener('input', scheduleSave);
 
     updateName();
 
@@ -934,30 +1032,42 @@
     document.querySelectorAll('.card-field').forEach(el => {
       const ph = el.dataset.placeholder;
       el.addEventListener('focus', function () {
-        if (this.textContent === ph) {
-          this.textContent = '';
-          this.classList.add('filled');
-        }
+        if (this.textContent === ph) { this.textContent = ''; this.classList.add('filled'); }
       });
       el.addEventListener('blur', function () {
-        if (!this.textContent.trim()) {
-          this.textContent = ph;
-          this.classList.remove('filled');
-        } else {
-          this.classList.add('filled');
-        }
+        if (!this.textContent.trim()) { this.textContent = ph; this.classList.remove('filled'); }
+        else this.classList.add('filled');
       });
+      el.addEventListener('input', scheduleSave);
     });
 
+    // Wire memory card inputs
+    document.querySelectorAll('.mem-title, .mem-story').forEach(el =>
+      el.addEventListener('input', scheduleSave)
+    );
+
+    // Wire existing remember inputs
+    document.querySelectorAll('.remember-input').forEach(el =>
+      el.addEventListener('input', scheduleSave)
+    );
+
     // ── Add remember item ──
-    function addRemember() {
+    function addRemember(value) {
       const list = document.getElementById('remember-list');
-      const li = document.createElement('li');
+      const li   = document.createElement('li');
       li.className = 'remember-item';
-      li.innerHTML = `<span class="remember-paw">🐾</span><input class="remember-input" type="text" placeholder="Another thing we'll never forget…">`;
+      li.innerHTML = `<span class="remember-paw">🐾</span><input class="remember-input" type="text" placeholder="Another thing we'll never forget…" value="${(value || '').replace(/"/g, '&quot;')}">`;
       list.appendChild(li);
-      li.querySelector('input').focus();
+      const input = li.querySelector('input');
+      input.addEventListener('input', scheduleSave);
+      if (!value) input.focus();
     }
+
+    // ── Load from DB on page open ──
+    (async () => {
+      const { data } = await sb.from('elsa_memorial').select('*').eq('id', 1).single();
+      applyState(data);
+    })();
   </script>
 </body>
 </html>
