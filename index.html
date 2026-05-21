@@ -616,6 +616,111 @@
       box-shadow: 0 2px 12px rgba(0,0,0,0.2);
     }
 
+    /* ── Lock screen ── */
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(160deg, #2E1F15 0%, #5C3D28 60%, #3D2B1F 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0;
+    }
+    .lock-paws-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cellipse cx='18' cy='18' rx='7' ry='9' fill='%23C8863A' opacity='.15'/%3E%3Cellipse cx='32' cy='12' rx='7' ry='9' fill='%23C8863A' opacity='.15'/%3E%3Cellipse cx='48' cy='12' rx='7' ry='9' fill='%23C8863A' opacity='.15'/%3E%3Cellipse cx='62' cy='18' rx='7' ry='9' fill='%23C8863A' opacity='.15'/%3E%3Cellipse cx='40' cy='46' rx='18' ry='16' fill='%23C8863A' opacity='.15'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .lock-card {
+      background: rgba(253,246,236,0.07);
+      border: 1px solid rgba(200,134,58,0.25);
+      border-radius: 24px;
+      padding: 52px 48px 44px;
+      width: min(420px, 90vw);
+      text-align: center;
+      position: relative;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+    }
+    .lock-paw-icon {
+      font-size: 2.6rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .lock-title {
+      font-family: Georgia, serif;
+      font-size: 1.7rem;
+      color: #fff;
+      font-style: italic;
+      margin-bottom: 6px;
+    }
+    .lock-sub {
+      font-family: system-ui, sans-serif;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .lock-input {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(200,134,58,0.35);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      color: #fff;
+      outline: none;
+      text-align: center;
+      letter-spacing: 0.08em;
+      transition: border-color 0.2s;
+      margin-bottom: 14px;
+    }
+    .lock-input::placeholder { color: rgba(255,255,255,0.3); letter-spacing: normal; }
+    .lock-input:focus { border-color: var(--amber-light); }
+    .lock-btn {
+      width: 100%;
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.02em;
+    }
+    .lock-btn:hover  { background: var(--amber-light); }
+    .lock-btn:active { transform: scale(0.98); }
+    .lock-btn:disabled { opacity: 0.6; cursor: default; }
+    .lock-error {
+      font-family: system-ui, sans-serif;
+      font-size: 0.82rem;
+      color: #f87171;
+      margin-top: 12px;
+      min-height: 1.2em;
+      transition: opacity 0.2s;
+    }
+    .lock-setup-note {
+      font-family: system-ui, sans-serif;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 24px;
+      line-height: 1.6;
+    }
+    .lock-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.55s ease;
+    }
+
     /* ── @media print ── */
     @media print {
       .print-bar { display: none !important; }
@@ -645,6 +750,24 @@
   </style>
 </head>
 <body>
+
+  <!-- ══════════════════════════════════════════
+       LOCK SCREEN  (hidden once authenticated)
+  ══════════════════════════════════════════ -->
+  <div class="lock-screen" id="lock-screen">
+    <div class="lock-paws-bg"></div>
+    <div class="lock-card" id="lock-card">
+      <span class="lock-paw-icon">🐾</span>
+      <div class="lock-title" id="lock-title">In Loving Memory</div>
+      <div class="lock-sub"   id="lock-sub">This page is private.<br>Enter the password to continue.</div>
+
+      <input  class="lock-input" id="lock-input" type="password"
+              placeholder="Enter password" autocomplete="current-password">
+      <button class="lock-btn"   id="lock-btn">Open →</button>
+      <div    class="lock-error" id="lock-error"></div>
+      <div    class="lock-setup-note" id="lock-setup-note"></div>
+    </div>
+  </div>
 
   <!-- Print bar -->
   <div class="print-bar">
@@ -1170,14 +1293,95 @@
       input.dispatchEvent(new Event('change'));
     });
 
-    // ── Load from DB on page open ──
+    // ── Password helpers ──────────────────────────────────────────────────────
+
+    async function sha256(text) {
+      const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    function unlockSite() {
+      sessionStorage.setItem('elsa_auth', '1');
+      const ls = document.getElementById('lock-screen');
+      ls.classList.add('fade-out');
+      setTimeout(() => ls.remove(), 560);
+    }
+
+    // ── Load from DB, then enforce lock screen ────────────────────────────────
     (async () => {
       const { data } = await sb.from('elsa_memorial').select('*').eq('id', 1).single();
-      applyState(data);
-      // Load user-uploaded photos into carousel
-      if (data?.user_photos?.length) {
-        data.user_photos.forEach(url => addSlide(url));
+
+      // ── Determine mode ────────────────────────────────────────────────────
+      const storedHash  = data?.password_hash || null;
+      const isSetupMode = !storedHash;                       // No password set yet
+      const alreadyAuth = sessionStorage.getItem('elsa_auth') === '1';
+
+      if (alreadyAuth) {
+        // Already authenticated this browser session — skip lock screen
+        unlockSite();
+        applyState(data);
+        if (data?.user_photos?.length) data.user_photos.forEach(url => addSlide(url));
+        return;
       }
+
+      // ── Render lock screen ────────────────────────────────────────────────
+      if (isSetupMode) {
+        document.getElementById('lock-title').textContent = 'Welcome, Family 🐾';
+        document.getElementById('lock-sub').textContent   =
+          'Create a password to keep this page private. You\'ll share it with anyone you want to have access.';
+        document.getElementById('lock-btn').textContent   = 'Set Password →';
+        document.getElementById('lock-input').placeholder = 'Choose a password';
+        document.getElementById('lock-setup-note').textContent =
+          'Pick something memorable — you\'ll need to share it with Callie & Andrew.';
+      }
+
+      // ── Handle submit ─────────────────────────────────────────────────────
+      const input  = document.getElementById('lock-input');
+      const btn    = document.getElementById('lock-btn');
+      const errEl  = document.getElementById('lock-error');
+
+      async function attempt() {
+        const val = input.value.trim();
+        if (!val) { errEl.textContent = 'Please enter a password.'; return; }
+
+        btn.disabled = true;
+        btn.textContent = isSetupMode ? 'Saving…' : 'Checking…';
+        errEl.textContent = '';
+
+        const hash = await sha256(val);
+
+        if (isSetupMode) {
+          // Save the hash to Supabase
+          const { error } = await sb.from('elsa_memorial')
+            .update({ password_hash: hash }).eq('id', 1);
+          if (error) {
+            errEl.textContent = 'Could not save — try again.';
+            btn.disabled = false;
+            btn.textContent = 'Set Password →';
+            return;
+          }
+          unlockSite();
+          applyState(data);
+          if (data?.user_photos?.length) data.user_photos.forEach(url => addSlide(url));
+        } else {
+          // Compare against stored hash
+          if (hash === storedHash) {
+            unlockSite();
+            applyState(data);
+            if (data?.user_photos?.length) data.user_photos.forEach(url => addSlide(url));
+          } else {
+            errEl.textContent = 'Incorrect password. Try again.';
+            input.value = '';
+            input.focus();
+            btn.disabled = false;
+            btn.textContent = 'Open →';
+          }
+        }
+      }
+
+      btn.addEventListener('click', attempt);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+      input.focus();
     })();
   </script>
 </body>
