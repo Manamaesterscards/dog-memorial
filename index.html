@@ -715,6 +715,51 @@
       margin-top: 24px;
       line-height: 1.6;
     }
+    .lock-strength {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .strength-bar-wrap {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+    .strength-seg {
+      flex: 1;
+      height: 4px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.12);
+      transition: background 0.25s;
+    }
+    .strength-seg.filled-weak   { background: #f87171; }
+    .strength-seg.filled-fair   { background: #fb923c; }
+    .strength-seg.filled-good   { background: #facc15; }
+    .strength-seg.filled-strong { background: #4ade80; }
+    .strength-label {
+      font-family: system-ui, sans-serif;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.45);
+    }
+    .strength-rules {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .rule-chip {
+      font-family: system-ui, sans-serif;
+      font-size: 0.7rem;
+      padding: 3px 9px;
+      border-radius: 100px;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.35);
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .rule-chip.met {
+      background: rgba(74,222,128,0.12);
+      border-color: rgba(74,222,128,0.4);
+      color: #4ade80;
+    }
     .lock-screen.fade-out {
       opacity: 0;
       pointer-events: none;
@@ -763,6 +808,24 @@
 
       <input  class="lock-input" id="lock-input" type="password"
               placeholder="Enter password" autocomplete="current-password">
+
+      <!-- Strength meter — only shown in setup mode -->
+      <div class="lock-strength" id="lock-strength" style="display:none">
+        <div class="strength-bar-wrap">
+          <div class="strength-seg" id="seg0"></div>
+          <div class="strength-seg" id="seg1"></div>
+          <div class="strength-seg" id="seg2"></div>
+          <div class="strength-seg" id="seg3"></div>
+        </div>
+        <div class="strength-label" id="strength-label">Strength: —</div>
+        <div class="strength-rules">
+          <div class="rule-chip" id="rule-len">8+ characters</div>
+          <div class="rule-chip" id="rule-num">Number</div>
+          <div class="rule-chip" id="rule-sym">Symbol (!@#$…)</div>
+          <div class="rule-chip" id="rule-mix">Upper &amp; lower</div>
+        </div>
+      </div>
+
       <button class="lock-btn"   id="lock-btn">Open →</button>
       <div    class="lock-error" id="lock-error"></div>
       <div    class="lock-setup-note" id="lock-setup-note"></div>
@@ -1336,13 +1399,57 @@
       }
 
       // ── Handle submit ─────────────────────────────────────────────────────
-      const input  = document.getElementById('lock-input');
-      const btn    = document.getElementById('lock-btn');
-      const errEl  = document.getElementById('lock-error');
+      const input   = document.getElementById('lock-input');
+      const btn     = document.getElementById('lock-btn');
+      const errEl   = document.getElementById('lock-error');
+
+      // ── Strength meter (setup mode only) ──────────────────────────────────
+      function checkRules(val) {
+        return {
+          len:  val.length >= 8,
+          num:  /[0-9]/.test(val),
+          sym:  /[^A-Za-z0-9]/.test(val),
+          mix:  /[A-Z]/.test(val) && /[a-z]/.test(val),
+        };
+      }
+
+      function updateStrength() {
+        const val   = input.value;
+        const rules = checkRules(val);
+        const score = Object.values(rules).filter(Boolean).length; // 0–4
+
+        const labels = ['', 'Weak', 'Fair', 'Good', 'Strong 🔒'];
+        const cls    = ['', 'filled-weak', 'filled-fair', 'filled-good', 'filled-strong'];
+
+        for (let i = 0; i < 4; i++) {
+          const seg = document.getElementById('seg' + i);
+          seg.className = 'strength-seg' + (i < score ? ' ' + cls[score] : '');
+        }
+        document.getElementById('strength-label').textContent =
+          val.length === 0 ? 'Strength: —' : 'Strength: ' + (labels[score] || '');
+
+        document.getElementById('rule-len').classList.toggle('met', rules.len);
+        document.getElementById('rule-num').classList.toggle('met', rules.num);
+        document.getElementById('rule-sym').classList.toggle('met', rules.sym);
+        document.getElementById('rule-mix').classList.toggle('met', rules.mix);
+      }
+
+      if (isSetupMode) {
+        document.getElementById('lock-strength').style.display = 'block';
+        input.addEventListener('input', updateStrength);
+      }
 
       async function attempt() {
-        const val = input.value.trim();
+        const val = input.value;
         if (!val) { errEl.textContent = 'Please enter a password.'; return; }
+
+        if (isSetupMode) {
+          const rules = checkRules(val);
+          if (!rules.len) { errEl.textContent = 'Password must be at least 8 characters.'; return; }
+          if (!rules.num) { errEl.textContent = 'Add at least one number (0–9).'; return; }
+          if (!rules.sym) { errEl.textContent = 'Add at least one symbol (!@#$%…).'; return; }
+          if (!rules.mix) { errEl.textContent = 'Use both uppercase and lowercase letters.'; return; }
+        }
 
         btn.disabled = true;
         btn.textContent = isSetupMode ? 'Saving…' : 'Checking…';
@@ -1351,7 +1458,6 @@
         const hash = await sha256(val);
 
         if (isSetupMode) {
-          // Save the hash to Supabase
           const { error } = await sb.from('elsa_memorial')
             .update({ password_hash: hash }).eq('id', 1);
           if (error) {
@@ -1364,7 +1470,6 @@
           applyState(data);
           if (data?.user_photos?.length) data.user_photos.forEach(url => addSlide(url));
         } else {
-          // Compare against stored hash
           if (hash === storedHash) {
             unlockSite();
             applyState(data);
