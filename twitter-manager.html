@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@needmoremanas – Sports Cards Twitter Manager</title>
+  <style>
+    /* === Variables === */
+    :root {
+      --navy: #1a2744;
+      --navy-dark: #0d1b2e;
+      --navy-card: #1e3056;
+      --navy-hover: #243766;
+      --gold: #d4af37;
+      --gold-dark: #b8962e;
+      --gold-light: #f0d060;
+      --gold-muted: #8a7020;
+      --text: #e8e0d0;
+      --text-muted: #a09880;
+      --text-dim: #6a6050;
+      --success: #4caf85;
+      --warning: #e8a030;
+      --danger: #e85030;
+      --border: rgba(212, 175, 55, 0.2);
+      --radius: 8px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--navy-dark);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* === Header === */
+    .header {
+      background: linear-gradient(135deg, var(--navy) 0%, #0d1b2e 100%);
+      border-bottom: 2px solid var(--gold);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-logo {
+      width: 42px; height: 42px;
+      background: var(--gold);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .header-title {
+      font-family: Georgia, serif;
+      font-size: 1.25rem;
+      color: var(--gold);
+      font-weight: bold;
+    }
+    .header-handle { font-size: 0.8rem; color: var(--text-muted); }
+    .header-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* === Tabs === */
+    .tabs {
+      display: flex;
+      overflow-x: auto;
+      background: var(--navy);
+      border-bottom: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      padding: 14px 20px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* === Layout === */
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* === Cards === */
+    .card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: Georgia, serif;
+      font-size: 1.05rem;
+      color: var(--gold);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* === Forms === */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    input, select, textarea {
+      background: var(--navy-dark);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 9px 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); }
+    select option { background: var(--navy-dark); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* === Buttons === */
+    .btn {
+      padding: 10px 18px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: inherit;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: var(--gold); color: var(--navy-dark); }
+    .btn-primary:hover { background: var(--gold-light); }
+    .btn-secondary { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+    .btn-secondary:hover { background: rgba(212,175,55,0.12); }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: rgba(232,80,48,0.1); }
+    .btn-success { background: var(--success); color: #fff; border: none; }
+    .btn-success:hover { opacity: 0.85; }
+    .btn-sm { padding: 7px 14px; font-size: 0.82rem; }
+    .btn-xs { padding: 4px 9px; font-size: 0.75rem; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+    /* === Tweet Preview === */
+    .tweet-preview {
+      background: var(--navy-dark);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .tweet-preview-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .tweet-avatar {
+      width: 36px; height: 36px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .tweet-username { font-weight: 600; font-size: 0.9rem; }
+    .tweet-handle { color: var(--text-muted); font-size: 0.8rem; }
+    .tweet-body {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      min-height: 60px;
+      color: var(--text);
+    }
+    .tweet-body.editable {
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+      padding: 8px;
+      outline: none;
+      cursor: text;
+    }
+    .tweet-body.editable:focus { border-color: var(--gold-muted); }
+    .char-counter {
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 8px; margin-top: 8px; font-size: 0.82rem; color: var(--text-muted);
+    }
+    .char-count { font-weight: 600; }
+    .char-count.warning { color: var(--warning); }
+    .char-count.over { color: var(--danger); }
+
+    /* === Hashtag Chips === */
+    .hashtag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .hashtag-chip {
+      background: rgba(212,175,55,0.1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      color: var(--gold);
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .hashtag-chip:hover { background: rgba(212,175,55,0.25); border-color: var(--gold); }
+    .hashtag-chip.selected { background: var(--gold); color: var(--navy-dark); font-weight: 600; }
+
+    /* === Queue Items === */
+    .queue-item {
+      background: var(--navy-dark);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex; gap: 12px; align-items: flex-start;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .queue-item[draggable="true"] { cursor: grab; }
+    .queue-item[draggable="true"]:active { cursor: grabbing; }
+    .queue-item.dragging { opacity: 0.45; }
+    .queue-item.drag-over { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-muted); }
+    .queue-drag-handle { color: var(--text-dim); font-size: 1.1rem; padding-top: 2px; cursor: grab; }
+    .queue-item-body { flex: 1; min-width: 0; }
+    .queue-tweet-text {
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .queue-item-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .status-badge { padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-pending { background: rgba(232,160,48,0.18); color: var(--warning); }
+    .badge-scheduled { background: rgba(76,175,133,0.18); color: var(--success); }
+    .badge-posted { background: rgba(106,96,80,0.18); color: var(--text-dim); }
+
+    /* === Inventory Table === */
+    .inventory-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .inventory-table th {
+      text-align: left; padding: 10px 12px;
+      color: var(--gold); font-size: 0.72rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+    .inventory-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(212,175,55,0.07);
+      vertical-align: middle;
+    }
+    .inventory-table tr:last-child td { border-bottom: none; }
+    .inventory-table tr:hover td { background: rgba(212,175,55,0.04); }
+    .status-pill { padding: 2px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 600; }
+    .pill-available { background: rgba(76,175,133,0.2); color: var(--success); }
+    .pill-sold { background: rgba(106,96,80,0.2); color: var(--text-dim); }
+    .pill-trade { background: rgba(212,175,55,0.2); color: var(--gold); }
+
+    /* === Stats Grid === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px; text-align: center;
+    }
+    .stat-value { font-family: Georgia, serif; font-size: 1.7rem; color: var(--gold); font-weight: bold; }
+    .stat-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
+    /* === Templates === */
+    .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+    .template-card {
+      background: var(--navy-dark);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .template-card:hover { border-color: var(--gold-muted); background: var(--navy-hover); }
+    .template-name { font-weight: 600; font-size: 0.9rem; color: var(--gold); margin-bottom: 6px; }
+    .template-preview { font-size: 0.8rem; color: var(--text-muted); white-space: pre-wrap; line-height: 1.5; }
+
+    /* === Best Times === */
+    .best-times { display: flex; flex-wrap: wrap; gap: 8px; }
+    .time-chip {
+      background: rgba(76,175,133,0.14);
+      border: 1px solid rgba(76,175,133,0.3);
+      border-radius: 6px; padding: 6px 14px;
+      font-size: 0.82rem; color: var(--success);
+    }
+
+    /* === Sparkline === */
+    .sparkline-container {
+      background: var(--navy-dark);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px; margin-top: 12px;
+    }
+    .sparkline-svg { width: 100%; height: 80px; }
+
+    /* === Info Box === */
+    .info-box {
+      background: rgba(212,175,55,0.07);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: var(--radius);
+      padding: 14px 16px; font-size: 0.85rem;
+      color: var(--text-muted); line-height: 1.6;
+    }
+    .info-box a { color: var(--gold); }
+
+    /* === Category label === */
+    .category-label {
+      font-size: 0.74rem; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 6px; margin-top: 14px;
+    }
+
+    /* === Section Header === */
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-title { font-family: Georgia, serif; font-size: 1.2rem; color: var(--gold); }
+
+    /* === Toast === */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--navy-card);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 12px 20px; color: var(--text);
+      font-size: 0.9rem; box-shadow: var(--shadow);
+      z-index: 1000; opacity: 0; transform: translateY(10px);
+      transition: all 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* === Empty State === */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state-icon { font-size: 2.8rem; margin-bottom: 10px; }
+    .empty-state-text { font-size: 0.95rem; line-height: 1.6; }
+
+    /* === Utility === */
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .mt-8 { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .mb-16 { margin-bottom: 16px; }
+    .text-muted { color: var(--text-muted); }
+    .text-sm { font-size: 0.85rem; }
+    .text-gold { color: var(--gold); }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+    /* === Modal === */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 200; display: none;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--navy-card);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 24px; width: 100%;
+      max-width: 560px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal-title { font-family: Georgia, serif; font-size: 1.1rem; color: var(--gold); margin-bottom: 16px; }
+
+    /* === Responsive === */
+    @media (max-width: 640px) {
+      .header-title { font-size: 1rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .template-grid { grid-template-columns: 1fr; }
+      .inventory-table th:nth-child(n+5),
+      .inventory-table td:nth-child(n+5) { display: none; }
+      .tab { padding: 12px 13px; font-size: 0.78rem; }
+      .container { padding: 14px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo">🃏</div>
+    <div>
+      <div class="header-title">Sports Cards Manager</div>
+      <div class="header-handle">@needmoremanas</div>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span id="save-status">Ready</span>
+  </div>
+</header>
+
+<!-- ===== TABS ===== -->
+<nav class="tabs">
+  <button class="tab active" data-tab="composer">✍️ Composer</button>
+  <button class="tab" data-tab="templates">📋 Templates</button>
+  <button class="tab" data-tab="queue">📅 Queue</button>
+  <button class="tab" data-tab="inventory">📦 Inventory</button>
+  <button class="tab" data-tab="hashtags">🏷️ Hashtags</button>
+  <button class="tab" data-tab="analytics">📊 Analytics</button>
+</nav>
+
+<!-- ===================================================================== -->
+<!-- COMPOSER PANEL                                                          -->
+<!-- ===================================================================== -->
+<div id="panel-composer" class="panel active">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">🃏 Card Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Player / Subject</label>
+          <input type="text" id="c-player" placeholder="e.g. Mike Trout" oninput="composeUpdate()">
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <input type="text" id="c-year" placeholder="e.g. 2009" oninput="composeUpdate()">
+        </div>
+        <div class="form-group">
+          <label>Brand / Set</label>
+          <input type="text" id="c-set" placeholder="e.g. Topps Chrome" oninput="composeUpdate()">
+        </div>
+        <div class="form-group">
+          <label>Card #</label>
+          <input type="text" id="c-num" placeholder="e.g. RC-45" oninput="composeUpdate()">
+        </div>
+        <div class="form-group">
+          <label>Sport</label>
+          <select id="c-sport" onchange="composeUpdate()">
+            <option value="">— Select —</option>
+            <option>Baseball</option><option>Basketball</option>
+            <option>Football</option><option>Hockey</option>
+            <option>Soccer</option><option>Golf</option>
+            <option>MMA</option><option>Wrestling</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Team</label>
+          <input type="text" id="c-team" placeholder="e.g. Angels" oninput="composeUpdate()">
+        </div>
+        <div class="form-group">
+          <label>Parallel / Variation</label>
+          <input type="text" id="c-parallel" placeholder="e.g. Refractor /99" oninput="composeUpdate()">
+        </div>
+        <div class="form-group">
+          <label>Grading Co.</label>
+          <select id="c-grade-co" onchange="composeUpdate()">
+            <option value="Raw">Raw (Ungraded)</option>
+            <option value="PSA">PSA</option>
+            <option value="BGS">BGS (Beckett)</option>
+            <option value="SGC">SGC</option>
+            <option value="CGC">CGC</option>
+          </select>
+        </div>
+        <div class="form-group" id="grade-score-group" style="display:none;">
+          <label>Grade</label>
+          <select id="c-grade-score" onchange="composeUpdate()">
+            <option value="10">10 (Gem Mint)</option>
+            <option value="9.5">9.5</option>
+            <option value="9">9 (Mint)</option>
+            <option value="8.5">8.5</option>
+            <option value="8">8 (NM-MT)</option>
+            <option value="7.5">7.5</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Asking Price ($)</label>
+          <input type="number" id="c-price" placeholder="e.g. 150" oninput="composeUpdate()">
+        </div>
+        <div class="form-group">
+          <label>Sale Type</label>
+          <select id="c-sale-type" onchange="composeUpdate()">
+            <option value="BIN">BIN (Buy It Now)</option>
+            <option value="OBO">OBO (Or Best Offer)</option>
+            <option value="Auction">Auction</option>
+            <option value="Trade">Trade Bait</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Template Style</label>
+          <select id="c-template-style" onchange="composeUpdate()">
+            <option value="listing">🏷️ New Listing</option>
+            <option value="price-drop">📉 Price Drop</option>
+            <option value="trade-bait">🔀 Trade Bait</option>
+            <option value="pickup">🎉 New Pickup</option>
+            <option value="sold">✅ Just Sold</option>
+            <option value="lot">📦 Card Lot</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Extra Notes / CTA (optional)</label>
+        <input type="text" id="c-notes" placeholder="e.g. DMs open! Ships same day." oninput="composeUpdate()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🐦 Tweet Preview</div>
+      <div class="tweet-preview">
+        <div class="tweet-preview-header">
+          <div class="tweet-avatar">🃏</div>
+          <div>
+            <div class="tweet-username">needmoremanas</div>
+            <div class="tweet-handle">@needmoremanas</div>
+          </div>
+        </div>
+        <div class="tweet-body editable" id="tweet-output" contenteditable="true" oninput="countChars()">Fill in card details above to generate a tweet...</div>
+        <div class="char-counter">
+          <span id="char-count-display" class="char-count">0</span> / 280
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="copyTweet()">📋 Copy Tweet</button>
+        <button class="btn btn-secondary" onclick="addToQueue()">📅 Add to Queue</button>
+        <button class="btn btn-ghost" onclick="openInTwitter()">🐦 Post to X</button>
+        <button class="btn btn-ghost" onclick="clearComposer()">🗑️ Clear</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏷️ Quick Hashtags</div>
+      <p class="text-sm text-muted mb-16">Click to append a hashtag to your current tweet.</p>
+      <div id="auto-hashtags" class="hashtag-grid">
+        <span class="text-sm text-muted">Fill in card details to generate hashtag suggestions.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- TEMPLATES PANEL                                                         -->
+<!-- ===================================================================== -->
+<div id="panel-templates" class="panel">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title">Tweet Templates</div>
+      <button class="btn btn-secondary btn-sm" onclick="openModal('custom-template-modal')">+ Custom Template</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Built-in Templates</div>
+      <p class="text-sm text-muted mb-16">Click any template to load it into the Composer. Your card details will fill in automatically.</p>
+      <div class="template-grid" id="builtin-templates-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⭐ My Custom Templates</div>
+      <div id="custom-templates-grid" class="template-grid">
+        <div class="empty-state">
+          <div class="empty-state-icon">📝</div>
+          <div class="empty-state-text">No custom templates yet.<br>Create one with the button above!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- QUEUE PANEL                                                             -->
+<!-- ===================================================================== -->
+<div id="panel-queue" class="panel">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title">Content Queue</div>
+      <span class="text-sm text-muted" id="queue-count">0 tweets</span>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">⏰ Best Posting Times</div>
+      <p class="text-sm text-muted mb-16">Peak engagement windows for the sports cards community (Eastern Time):</p>
+      <div class="best-times">
+        <div class="time-chip">Mon–Fri · 12pm–2pm ET</div>
+        <div class="time-chip">Mon–Fri · 7pm–9pm ET</div>
+        <div class="time-chip">Sat–Sun · 10am–12pm ET</div>
+        <div class="time-chip">Sat–Sun · 3pm–5pm ET</div>
+      </div>
+      <p class="text-sm text-muted mt-8">💡 Boost reach by posting during <strong style="color:var(--gold)">National Sports Card Day</strong> events and right after major sports news drops.</p>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <button class="btn btn-sm btn-primary" id="filter-all" onclick="filterQueue('all')">All</button>
+      <button class="btn btn-sm btn-ghost" id="filter-pending" onclick="filterQueue('pending')">Pending</button>
+      <button class="btn btn-sm btn-ghost" id="filter-scheduled" onclick="filterQueue('scheduled')">Scheduled</button>
+      <button class="btn btn-sm btn-ghost" id="filter-posted" onclick="filterQueue('posted')">Posted</button>
+    </div>
+
+    <div id="queue-list"></div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- INVENTORY PANEL                                                         -->
+<!-- ===================================================================== -->
+<div id="panel-inventory" class="panel">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title">Card Inventory</div>
+      <button class="btn btn-primary btn-sm" onclick="openAddCardModal()">+ Add Card</button>
+    </div>
+
+    <div class="stats-grid" id="inventory-stats"></div>
+
+    <div class="card">
+      <div class="flex-between mb-16">
+        <div class="card-title" style="margin-bottom:0">📦 My Cards</div>
+        <select id="inv-filter-status" onchange="renderInventory()" style="padding:6px 10px;font-size:0.8rem;width:auto;">
+          <option value="">All Status</option>
+          <option value="available">Available</option>
+          <option value="sold">Sold</option>
+          <option value="trade">Trade Bait</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Year / Set</th>
+              <th>Grade</th>
+              <th>Ask</th>
+              <th>Cost / P&L</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-tbody"></tbody>
+        </table>
+      </div>
+      <div id="inventory-empty" class="empty-state" style="display:none;">
+        <div class="empty-state-icon">📦</div>
+        <div class="empty-state-text">No cards in inventory yet.<br>Add your first card to get started!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- HASHTAGS PANEL                                                          -->
+<!-- ===================================================================== -->
+<div id="panel-hashtags" class="panel">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title">Hashtag Manager</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📌 Selected Hashtags</div>
+      <div id="active-hashtag-preview" class="tweet-preview" style="min-height:50px;word-break:break-all;">
+        <span class="text-muted text-sm">Select hashtags below — they'll appear here ready to copy.</span>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="copySelectedHashtags()">📋 Copy All</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearSelectedHashtags()">🗑️ Clear</button>
+      </div>
+      <div class="char-counter mt-8">
+        Character count: <strong id="hashtag-char-total" class="char-count">0</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏷️ Hashtag Library</div>
+      <div id="hashtag-library"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💡 Hashtag Strategy</div>
+      <ul class="text-sm text-muted" style="padding-left:20px;line-height:2.1;">
+        <li>Use <strong style="color:var(--text)">3–5 hashtags</strong> per tweet — more can reduce engagement</li>
+        <li>Mix broad (#sportscards) with niche (#PSA10) tags for best reach</li>
+        <li>Player-name hashtags get picked up by team and fan accounts</li>
+        <li>Grade hashtags (#PSA10, #BGS95) attract serious collectors willing to pay premium</li>
+        <li>Use trending sport hashtags during playoffs, drafts, and big games</li>
+        <li>Tag your account <strong style="color:var(--gold)">@needmoremanas</strong> in every bio link post</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- ANALYTICS PANEL                                                         -->
+<!-- ===================================================================== -->
+<div id="panel-analytics" class="panel">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title">Analytics</div>
+    </div>
+
+    <div class="stats-grid" id="analytics-stats"></div>
+
+    <div class="card">
+      <div class="card-title">📈 Follower Growth Tracker</div>
+      <p class="text-sm text-muted mb-16">Log your follower count from X/Twitter to track growth over time.</p>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="form-group" style="flex:1;min-width:140px;">
+          <label>Date</label>
+          <input type="date" id="a-date">
+        </div>
+        <div class="form-group" style="flex:1;min-width:140px;">
+          <label>Follower Count</label>
+          <input type="number" id="a-followers" placeholder="e.g. 1250">
+        </div>
+        <button class="btn btn-primary" onclick="logFollowers()" style="margin-bottom:1px;">Log</button>
+      </div>
+      <div class="sparkline-container">
+        <svg class="sparkline-svg" id="sparkline-svg" viewBox="0 0 400 80" preserveAspectRatio="none"></svg>
+        <div id="sparkline-legend" class="text-sm text-muted mt-8"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Weekly Stats (Manual)</div>
+      <p class="text-sm text-muted mb-16">Copy numbers from <a href="https://analytics.twitter.com" target="_blank" style="color:var(--gold)">analytics.twitter.com</a> and paste them here.</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Impressions</label>
+          <input type="number" id="a-impressions" placeholder="e.g. 12500" oninput="saveAnalyticsStats()">
+        </div>
+        <div class="form-group">
+          <label>Engagements</label>
+          <input type="number" id="a-engagements" placeholder="e.g. 340" oninput="saveAnalyticsStats()">
+        </div>
+        <div class="form-group">
+          <label>Profile Visits</label>
+          <input type="number" id="a-visits" placeholder="e.g. 85" oninput="saveAnalyticsStats()">
+        </div>
+        <div class="form-group">
+          <label>New Followers</label>
+          <input type="number" id="a-new-followers" placeholder="e.g. 12" oninput="saveAnalyticsStats()">
+        </div>
+      </div>
+      <div class="form-group mt-16">
+        <label>Best Performing Tweet This Week</label>
+        <textarea id="a-best-tweet" placeholder="Paste the text of your top tweet here..." oninput="saveAnalyticsStats()"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔗 Connect Twitter/X API</div>
+      <div class="info-box">
+        <strong style="color:var(--gold)">Enable live analytics &amp; auto-posting for @needmoremanas:</strong><br><br>
+        <ol style="padding-left:18px;line-height:2.3;">
+          <li>Go to <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank">developer.twitter.com</a> → sign in as @needmoremanas</li>
+          <li>Create a new Project + App — select <strong style="color:var(--text)">Read and Write</strong> permissions</li>
+          <li>Copy your <strong style="color:var(--text)">API Key, API Secret, Access Token &amp; Access Token Secret</strong></li>
+          <li>For posting from code you need a server (Node.js/Express). Quick options:<br>
+            &nbsp;• <a href="https://buffer.com" target="_blank">Buffer</a> or <a href="https://hootsuite.com" target="_blank">Hootsuite</a> (scheduling dashboards)<br>
+            &nbsp;• <a href="https://zapier.com" target="_blank">Zapier</a> to auto-post from Google Sheets queue<br>
+            &nbsp;• <a href="https://make.com" target="_blank">Make.com</a> for advanced automation flows</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- MODALS                                                                  -->
+<!-- ===================================================================== -->
+<!-- Add / Edit Card -->
+<div class="modal-overlay" id="add-card-modal">
+  <div class="modal">
+    <div class="modal-title" id="add-card-modal-title">📦 Add Card to Inventory</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Player / Subject *</label>
+        <input type="text" id="m-player" placeholder="e.g. Mike Trout">
+      </div>
+      <div class="form-group">
+        <label>Year</label>
+        <input type="text" id="m-year" placeholder="e.g. 2009">
+      </div>
+      <div class="form-group">
+        <label>Brand / Set *</label>
+        <input type="text" id="m-set" placeholder="e.g. Topps Chrome">
+      </div>
+      <div class="form-group">
+        <label>Card # / Variation</label>
+        <input type="text" id="m-num" placeholder="e.g. RC-45 /99">
+      </div>
+      <div class="form-group">
+        <label>Sport</label>
+        <select id="m-sport">
+          <option value="">—</option>
+          <option>Baseball</option><option>Basketball</option>
+          <option>Football</option><option>Hockey</option>
+          <option>Soccer</option><option>Golf</option>
+          <option>MMA</option><option>Wrestling</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Grading Co.</label>
+        <select id="m-grade-co">
+          <option value="Raw">Raw</option>
+          <option value="PSA">PSA</option>
+          <option value="BGS">BGS</option>
+          <option value="SGC">SGC</option>
+          <option value="CGC">CGC</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Grade Score</label>
+        <select id="m-grade-score">
+          <option value="">N/A</option>
+          <option>10</option><option>9.5</option><option>9</option>
+          <option>8.5</option><option>8</option><option>7.5</option>
+          <option>7</option><option>6</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cost Basis ($)</label>
+        <input type="number" id="m-cost" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Asking Price ($)</label>
+        <input type="number" id="m-price" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="m-status">
+          <option value="available">Available</option>
+          <option value="trade">Trade Bait</option>
+          <option value="sold">Sold</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group mt-16">
+      <label>Notes</label>
+      <input type="text" id="m-notes" placeholder="e.g. great centering, minor edge wear">
+    </div>
+    <div class="btn-group" style="justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeModal('add-card-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Template -->
+<div class="modal-overlay" id="custom-template-modal">
+  <div class="modal">
+    <div class="modal-title">📝 Create Custom Template</div>
+    <div class="form-group mb-16">
+      <label>Template Name *</label>
+      <input type="text" id="t-name" placeholder="e.g. Weekend Flash Sale">
+    </div>
+    <div class="form-group">
+      <label>Template Content *</label>
+      <textarea id="t-content" style="min-height:120px;" placeholder="Use {player}, {year}, {set}, {grade}, {price}, {saleType}, {sport}, {team}, {parallel}, {notes} as variables..."></textarea>
+    </div>
+    <div class="info-box mt-16" style="font-size:0.82rem;">
+      <strong style="color:var(--gold)">Available variables:</strong><br>
+      {player} {year} {set} {cardNum} {grade} {price} {saleType} {sport} {team} {parallel} {notes}
+    </div>
+    <div class="btn-group" style="justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeModal('custom-template-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomTemplate()">Save Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ===================================================================== -->
+<!-- JAVASCRIPT                                                              -->
+<!-- ===================================================================== -->
+<script>
+// ============================================================
+// Supabase schema reference — create these tables for cloud sync:
+//
+// CREATE TABLE sports_cards_inventory (
+//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//   player TEXT NOT NULL,
+//   year TEXT,
+//   set_name TEXT,
+//   card_number TEXT,
+//   sport TEXT,
+//   team TEXT,
+//   grade_company TEXT DEFAULT 'Raw',
+//   grade_score TEXT,
+//   cost_basis NUMERIC(10,2),
+//   asking_price NUMERIC(10,2),
+//   status TEXT DEFAULT 'available' CHECK (status IN ('available','sold','trade')),
+//   notes TEXT,
+//   created_at TIMESTAMPTZ DEFAULT NOW()
+// );
+//
+// CREATE TABLE twitter_queue (
+//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//   tweet_text TEXT NOT NULL,
+//   status TEXT DEFAULT 'pending' CHECK (status IN ('pending','scheduled','posted')),
+//   scheduled_at TIMESTAMPTZ,
+//   posted_at TIMESTAMPTZ,
+//   card_id UUID REFERENCES sports_cards_inventory(id) ON DELETE SET NULL,
+//   created_at TIMESTAMPTZ DEFAULT NOW()
+// );
+// ============================================================
+
+const STORE = {
+  inventory: 'scc_inventory_v1',
+  queue: 'scc_queue_v1',
+  customTemplates: 'scc_templates_v1',
+  followerLog: 'scc_followers_v1',
+  analyticsStats: 'scc_analytics_stats_v1',
+  selectedHashtags: 'scc_sel_hashtags_v1'
+};
+
+function load(key, def) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? def; }
+  catch { return def; }
+}
+function persist(key, val) {
+  localStorage.setItem(key, JSON.stringify(val));
+  document.getElementById('save-status').textContent = 'Saved';
+  clearTimeout(persist._t);
+  persist._t = setTimeout(() => { document.getElementById('save-status').textContent = 'Ready'; }, 1200);
+}
+
+let inventory       = load(STORE.inventory, []);
+let queue           = load(STORE.queue, []);
+let customTemplates = load(STORE.customTemplates, []);
+let followerLog     = load(STORE.followerLog, []);
+let analyticsStats  = load(STORE.analyticsStats, {});
+let selectedHashtags = new Set(load(STORE.selectedHashtags, []));
+
+let currentEditingCardId = null;
+let queueFilter = 'all';
+let dragSrcId = null;
+
+// ============================================================
+// TABS
+// ============================================================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    const renders = {
+      queue: renderQueue,
+      inventory: renderInventory,
+      templates: renderTemplates,
+      hashtags: renderHashtagLibrary,
+      analytics: renderAnalytics
+    };
+    if (renders[tab.dataset.tab]) renders[tab.dataset.tab]();
+  });
+});
+
+// ============================================================
+// COMPOSER
+// ============================================================
+const TEMPLATES = {
+  listing: v => `🔥 FOR SALE: ${v.year||'{year}'} ${v.set||'{set}'} ${v.player||'{player}'}${v.num?' #'+v.num:''}${v.parallel?' | '+v.parallel:''}\n${v.gradeStr}\n💰 $${v.price||'???'} ${v.saleType}${v.notes?'\n\n'+v.notes:''}\n\nDMs open! 📬\n\n#sportscards #needmoremanas`,
+  'price-drop': v => `📉 PRICE DROP on ${v.player||'{player}'}!\n\n${v.year||'{year}'} ${v.set||'{set}'}${v.parallel?' '+v.parallel:''}\n${v.gradeStr}\n💰 NOW: $${v.price||'???'} ${v.saleType}\n\nFirst DM gets it! 🔥\n\n#sportscards #pricedrop`,
+  'trade-bait': v => `🔀 TRADE BAIT\n\n${v.year||'{year}'} ${v.set||'{set}'} ${v.player||'{player}'}${v.parallel?' '+v.parallel:''}\n${v.gradeStr}\n\nLooking for: ${v.notes||'{what you want}'}\n\nLMK what you've got! 👀 DMs open\n\n#hobbylife #tradebait`,
+  pickup: v => `🎉 JUST PICKED UP!\n\n${v.year||'{year}'} ${v.set||'{set}'} ${v.player||'{player}'}${v.parallel?' '+v.parallel:''}\n${v.gradeStr}${v.notes?'\n\n'+v.notes:''}\n\nStoked on this one! 🙌\n\n#cardcollector #hobbylife`,
+  sold: v => `✅ SOLD!\n\n${v.year||'{year}'} ${v.set||'{set}'} ${v.player||'{player}'} ${v.gradeStr} has found a new home! 🏠\n\nAlways more heat dropping — follow @needmoremanas for new listings! 👀\n\n#sportscards`,
+  lot: v => `📦 CARD LOT FOR SALE\n\n${v.player||'{description}'}\n${v.notes||'Multiple cards — great deal!'}\n💰 $${v.price||'???'} ${v.saleType}\n\nDMs open! 📬\n\n#sportscards #cardlot`
+};
+
+const TEMPLATE_NAMES = {
+  listing: '🏷️ New Listing',
+  'price-drop': '📉 Price Drop',
+  'trade-bait': '🔀 Trade Bait',
+  pickup: '🎉 New Pickup',
+  sold: '✅ Just Sold',
+  lot: '📦 Card Lot'
+};
+
+const TEMPLATE_PREVIEWS = {
+  listing:     '🔥 FOR SALE: {year} {set} {player} #{cardNum}\n{grade}\n💰 ${price} BIN\n\nDMs open! 📬\n\n#sportscards #needmoremanas',
+  'price-drop':'📉 PRICE DROP on {player}!\n\n{year} {set}\n{grade}\n💰 NOW: ${price} OBO\n\nFirst DM gets it! 🔥',
+  'trade-bait':'🔀 TRADE BAIT\n\n{year} {set} {player}\n{grade}\n\nLooking for: {what you want}\n\nLMK! 👀 #hobbylife',
+  pickup:      '🎉 JUST PICKED UP!\n\n{year} {set} {player}\n{grade}\n\nStoked! 🙌 #cardcollector',
+  sold:        '✅ SOLD!\n\n{year} {set} {player} found a new home! 🏠\n\nFollow @needmoremanas for new listings! 👀',
+  lot:         '📦 CARD LOT FOR SALE\n\n{description}\n💰 ${price} BIN\n\nDMs open! 📬 #cardlot'
+};
+
+function getVars() {
+  const co    = document.getElementById('c-grade-co').value;
+  const score = document.getElementById('c-grade-score').value;
+  return {
+    player:   document.getElementById('c-player').value.trim(),
+    year:     document.getElementById('c-year').value.trim(),
+    set:      document.getElementById('c-set').value.trim(),
+    num:      document.getElementById('c-num').value.trim(),
+    sport:    document.getElementById('c-sport').value,
+    team:     document.getElementById('c-team').value.trim(),
+    parallel: document.getElementById('c-parallel').value.trim(),
+    gradeCo:  co,
+    gradeStr: co === 'Raw' ? 'Raw (Ungraded)' : `${co} ${score}`,
+    price:    document.getElementById('c-price').value.trim(),
+    saleType: document.getElementById('c-sale-type').value,
+    notes:    document.getElementById('c-notes').value.trim()
+  };
+}
+
+function composeUpdate() {
+  const v = getVars();
+  // Show/hide grade score based on grading company
+  document.getElementById('grade-score-group').style.display = v.gradeCo === 'Raw' ? 'none' : '';
+
+  const style = document.getElementById('c-template-style').value;
+  const fn = TEMPLATES[style];
+  const text = fn ? fn(v) : '';
+  const out = document.getElementById('tweet-output');
+  out.textContent = text || 'Fill in card details above to generate a tweet...';
+  countChars();
+  renderAutoHashtags(v);
+}
+
+function countChars() {
+  const out = document.getElementById('tweet-output');
+  const len = (out.textContent || out.innerText || '').length;
+  const el  = document.getElementById('char-count-display');
+  el.textContent = len;
+  el.className = 'char-count' + (len > 280 ? ' over' : len > 240 ? ' warning' : '');
+}
+
+function renderAutoHashtags(v) {
+  const tags = new Set(['#sportscards', '#cardcollector']);
+  if (v.player) tags.add('#' + v.player.replace(/\s+/g, ''));
+  if (v.sport)  tags.add('#' + v.sport.toLowerCase().replace(/\s+/g, ''));
+  if (v.team)   tags.add('#' + v.team.replace(/\s+/g, ''));
+  const cleanSet = v.set.replace(/[^a-zA-Z0-9]/g, '');
+  if (cleanSet) tags.add('#' + cleanSet);
+  if (v.gradeCo !== 'Raw') {
+    tags.add('#' + v.gradeCo);
+    const score = document.getElementById('c-grade-score').value;
+    tags.add('#' + v.gradeCo + score.replace('.', ''));
+  }
+
+  const container = document.getElementById('auto-hashtags');
+  if (tags.size === 2 && !v.player && !v.sport) {
+    container.innerHTML = '<span class="text-sm text-muted">Fill in card details to generate hashtag suggestions.</span>';
+    return;
+  }
+  container.innerHTML = [...tags].map(t =>
+    `<span class="hashtag-chip" onclick="appendHashtagToTweet('${t}')">${t}</span>`
+  ).join('');
+}
+
+function appendHashtagToTweet(tag) {
+  const out = document.getElementById('tweet-output');
+  const cur = (out.textContent || '').trimEnd();
+  if (cur.includes(tag)) { showToast('Already in tweet'); return; }
+  out.textContent = cur + '\n' + tag;
+  countChars();
+  showToast(`${tag} added`);
+}
+
+function copyTweet() {
+  const text = getTweetText();
+  if (!text) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard! 📋'));
+}
+
+function openInTwitter() {
+  const text = getTweetText();
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text || ''), '_blank');
+}
+
+function getTweetText() {
+  const out = document.getElementById('tweet-output');
+  const t = (out.textContent || out.innerText || '').trim();
+  return (t === 'Fill in card details above to generate a tweet...') ? '' : t;
+}
+
+function clearComposer() {
+  ['c-player','c-year','c-set','c-num','c-team','c-parallel','c-notes','c-price'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('c-sport').value = '';
+  document.getElementById('c-grade-co').value = 'Raw';
+  document.getElementById('tweet-output').textContent = 'Fill in card details above to generate a tweet...';
+  document.getElementById('char-count-display').textContent = '0';
+  document.getElementById('auto-hashtags').innerHTML = '<span class="text-sm text-muted">Fill in card details to generate hashtag suggestions.</span>';
+  document.getElementById('grade-score-group').style.display = 'none';
+}
+
+function addToQueue() {
+  const text = getTweetText();
+  if (!text) { showToast('Generate a tweet first!'); return; }
+  queue.unshift({ id: uid(), tweet: text, status: 'pending', scheduledAt: null, createdAt: new Date().toISOString() });
+  persist(STORE.queue, queue);
+  showToast('Added to queue! 📅');
+}
+
+// ============================================================
+// TEMPLATES
+// ============================================================
+function renderTemplates() {
+  document.getElementById('builtin-templates-grid').innerHTML =
+    Object.entries(TEMPLATE_NAMES).map(([key, name]) =>
+      `<div class="template-card" onclick="useBuiltinTemplate('${key}')">
+        <div class="template-name">${name}</div>
+        <div class="template-preview">${esc(TEMPLATE_PREVIEWS[key])}</div>
+      </div>`
+    ).join('');
+
+  const grid = document.getElementById('custom-templates-grid');
+  if (!customTemplates.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">No custom templates yet.<br>Create one with the button above!</div></div>`;
+    return;
+  }
+  grid.innerHTML = customTemplates.map(t =>
+    `<div class="template-card">
+      <div class="flex-between" style="margin-bottom:6px;">
+        <div class="template-name">${esc(t.name)}</div>
+        <button class="btn btn-xs btn-danger" onclick="event.stopPropagation();deleteCustomTemplate('${t.id}')">✕</button>
+      </div>
+      <div class="template-preview">${esc(t.content)}</div>
+      <button class="btn btn-sm btn-secondary" onclick="useCustomTemplate('${t.id}')" style="margin-top:8px;width:100%;">Use Template</button>
+    </div>`
+  ).join('');
+}
+
+function useBuiltinTemplate(key) {
+  document.getElementById('c-template-style').value = key;
+  document.querySelector('.tab[data-tab="composer"]').click();
+  composeUpdate();
+  showToast(`"${TEMPLATE_NAMES[key]}" applied!`);
+}
+
+function useCustomTemplate(id) {
+  const tmpl = customTemplates.find(t => t.id === id);
+  if (!tmpl) return;
+  const v = getVars();
+  const subs = { player: v.player, year: v.year, set: v.set, cardNum: v.num,
+    grade: v.gradeStr, price: v.price, saleType: v.saleType,
+    sport: v.sport, team: v.team, parallel: v.parallel, notes: v.notes };
+  let text = tmpl.content;
+  Object.entries(subs).forEach(([k, val]) => {
+    text = text.replaceAll('{' + k + '}', val || '{' + k + '}');
+  });
+  document.querySelector('.tab[data-tab="composer"]').click();
+  document.getElementById('tweet-output').textContent = text;
+  countChars();
+  showToast('Template applied!');
+}
+
+function saveCustomTemplate() {
+  const name    = document.getElementById('t-name').value.trim();
+  const content = document.getElementById('t-content').value.trim();
+  if (!name || !content) { showToast('Name and content are required'); return; }
+  customTemplates.push({ id: uid(), name, content });
+  persist(STORE.customTemplates, customTemplates);
+  closeModal('custom-template-modal');
+  document.getElementById('t-name').value = '';
+  document.getElementById('t-content').value = '';
+  renderTemplates();
+  showToast('Template saved! ⭐');
+}
+
+function deleteCustomTemplate(id) {
+  customTemplates = customTemplates.filter(t => t.id !== id);
+  persist(STORE.customTemplates, customTemplates);
+  renderTemplates();
+  showToast('Template deleted');
+}
+
+// ============================================================
+// QUEUE
+// ============================================================
+function filterQueue(f) {
+  queueFilter = f;
+  ['all','pending','scheduled','posted'].forEach(id => {
+    const btn = document.getElementById('filter-' + id);
+    btn.className = id === f ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
+  });
+  renderQueue();
+}
+
+function renderQueue() {
+  const filtered = queueFilter === 'all' ? queue : queue.filter(q => q.status === queueFilter);
+  const list = document.getElementById('queue-list');
+  document.getElementById('queue-count').textContent = queue.length + ' tweet' + (queue.length !== 1 ? 's' : '');
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">No tweets in this view.<br>Compose a tweet and click "Add to Queue".</div></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(item => {
+    const badge = item.status === 'pending' ? 'badge-pending' : item.status === 'scheduled' ? 'badge-scheduled' : 'badge-posted';
+    const label = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+    return `
+    <div class="queue-item" draggable="true" data-id="${item.id}"
+      ondragstart="onDragStart(event,'${item.id}')"
+      ondragover="onDragOver(event)"
+      ondrop="onDrop(event,'${item.id}')"
+      ondragend="onDragEnd()">
+      <div class="queue-drag-handle">⋮⋮</div>
+      <div class="queue-item-body">
+        <div class="queue-tweet-text">${esc(item.tweet)}</div>
+        <div class="queue-item-meta">
+          <span class="status-badge ${badge}">${label}</span>
+          ${item.scheduledAt ? `<span class="text-sm text-muted">📅 ${fmtDate(item.scheduledAt)}</span>` : ''}
+          <span class="text-sm text-muted">${fmtDate(item.createdAt)}</span>
+        </div>
+        <div class="btn-group" style="margin-top:8px;">
+          ${item.status !== 'posted' ? `<button class="btn btn-xs btn-success" onclick="markPosted('${item.id}')">✅ Posted</button>` : ''}
+          <button class="btn btn-xs btn-secondary" onclick="copyQueueTweet('${item.id}')">📋 Copy</button>
+          <button class="btn btn-xs btn-ghost" onclick="scheduleItem('${item.id}')">📅 Schedule</button>
+          <button class="btn btn-xs btn-ghost" onclick="tweetFromQueue('${item.id}')">🐦 Tweet</button>
+          <button class="btn btn-xs btn-danger" onclick="deleteQueueItem('${item.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function onDragStart(e, id) {
+  dragSrcId = id;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function onDragEnd() {
+  document.querySelectorAll('.queue-item').forEach(el => el.classList.remove('dragging','drag-over'));
+}
+function onDrop(e, targetId) {
+  e.preventDefault();
+  onDragEnd();
+  if (dragSrcId === targetId) return;
+  const si = queue.findIndex(q => q.id === dragSrcId);
+  const ti = queue.findIndex(q => q.id === targetId);
+  if (si < 0 || ti < 0) return;
+  const [item] = queue.splice(si, 1);
+  queue.splice(ti, 0, item);
+  persist(STORE.queue, queue);
+  renderQueue();
+}
+
+function markPosted(id) {
+  const item = queue.find(q => q.id === id);
+  if (item) { item.status = 'posted'; item.postedAt = new Date().toISOString(); }
+  persist(STORE.queue, queue);
+  renderQueue();
+  showToast('Marked as posted! ✅');
+}
+
+function copyQueueTweet(id) {
+  const item = queue.find(q => q.id === id);
+  if (item) navigator.clipboard.writeText(item.tweet).then(() => showToast('Copied! 📋'));
+}
+
+function tweetFromQueue(id) {
+  const item = queue.find(q => q.id === id);
+  if (item) window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(item.tweet), '_blank');
+}
+
+function scheduleItem(id) {
+  const dt = prompt('Schedule for (YYYY-MM-DD HH:MM):');
+  if (!dt) return;
+  const parsed = new Date(dt);
+  if (isNaN(parsed)) { showToast('Invalid date format'); return; }
+  const item = queue.find(q => q.id === id);
+  if (item) { item.scheduledAt = parsed.toISOString(); item.status = 'scheduled'; }
+  persist(STORE.queue, queue);
+  renderQueue();
+  showToast('Scheduled for ' + fmtDate(parsed.toISOString()) + ' 📅');
+}
+
+function deleteQueueItem(id) {
+  queue = queue.filter(q => q.id !== id);
+  persist(STORE.queue, queue);
+  renderQueue();
+  showToast('Removed');
+}
+
+// ============================================================
+// INVENTORY
+// ============================================================
+function renderInventory() {
+  const sf = document.getElementById('inv-filter-status').value;
+  const rows = sf ? inventory.filter(c => c.status === sf) : inventory;
+  const tbody = document.getElementById('inventory-tbody');
+  const empty = document.getElementById('inventory-empty');
+
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = rows.map(c => {
+      const grade = c.gradeCo === 'Raw' ? 'Raw' : `${c.gradeCo}${c.gradeScore ? ' ' + c.gradeScore : ''}`;
+      const pl = (c.status === 'sold' && c.askingPrice && c.costBasis)
+        ? (Number(c.askingPrice) - Number(c.costBasis)).toFixed(2) : null;
+      const plColor = pl !== null ? (Number(pl) >= 0 ? 'var(--success)' : 'var(--danger)') : '';
+      return `<tr>
+        <td><strong>${esc(c.player)}</strong>${c.sport?`<br><span class="text-sm text-muted">${esc(c.sport)}</span>`:''}</td>
+        <td>${esc(c.year||'')} ${esc(c.set||'')}<br><span class="text-sm text-muted">${esc(c.cardNum||'')}</span></td>
+        <td>${esc(grade)}</td>
+        <td>${c.askingPrice ? '$'+c.askingPrice : '—'}</td>
+        <td>${c.costBasis ? '$'+c.costBasis : '—'}${pl!==null?`<br><span class="text-sm" style="color:${plColor}">P&L: $${pl}</span>`:''}</td>
+        <td><span class="status-pill pill-${c.status}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</span></td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            <button class="btn btn-xs btn-secondary" title="Generate Tweet" onclick="loadCardIntoComposer('${c.id}')">🐦</button>
+            <button class="btn btn-xs btn-ghost" title="Edit" onclick="editCard('${c.id}')">✏️</button>
+            <button class="btn btn-xs btn-danger" title="Delete" onclick="deleteCard('${c.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  renderInventoryStats();
+}
+
+function renderInventoryStats() {
+  const avail    = inventory.filter(c => c.status === 'available');
+  const sold     = inventory.filter(c => c.status === 'sold');
+  const invVal   = avail.reduce((s,c) => s + Number(c.askingPrice||0), 0);
+  const soldRev  = sold.reduce((s,c) => s + Number(c.askingPrice||0), 0);
+  const soldCost = sold.reduce((s,c) => s + Number(c.costBasis||0), 0);
+  const profit   = soldRev - soldCost;
+
+  document.getElementById('inventory-stats').innerHTML = [
+    { label: 'Total Cards',      value: inventory.length },
+    { label: 'Available',        value: avail.length },
+    { label: 'Sold',             value: sold.length },
+    { label: 'Inventory Value',  value: '$' + invVal.toFixed(0) },
+    { label: 'Total P&L',        value: '$' + profit.toFixed(0), color: profit >= 0 ? 'var(--success)' : 'var(--danger)' }
+  ].map(s => `
+    <div class="stat-card">
+      <div class="stat-value"${s.color ? ` style="color:${s.color}"` : ''}>${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`
+  ).join('');
+}
+
+function openAddCardModal() {
+  currentEditingCardId = null;
+  document.getElementById('add-card-modal-title').textContent = '📦 Add Card to Inventory';
+  ['m-player','m-year','m-set','m-num','m-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-sport').value = '';
+  document.getElementById('m-grade-co').value = 'Raw';
+  document.getElementById('m-grade-score').value = '';
+  document.getElementById('m-cost').value = '';
+  document.getElementById('m-price').value = '';
+  document.getElementById('m-status').value = 'available';
+  openModal('add-card-modal');
+}
+
+function editCard(id) {
+  const c = inventory.find(c => c.id === id);
+  if (!c) return;
+  currentEditingCardId = id;
+  document.getElementById('add-card-modal-title').textContent = '✏️ Edit Card';
+  document.getElementById('m-player').value  = c.player  || '';
+  document.getElementById('m-year').value    = c.year    || '';
+  document.getElementById('m-set').value     = c.set     || '';
+  document.getElementById('m-num').value     = c.cardNum || '';
+  document.getElementById('m-sport').value   = c.sport   || '';
+  document.getElementById('m-grade-co').value    = c.gradeCo  || 'Raw';
+  document.getElementById('m-grade-score').value = c.gradeScore || '';
+  document.getElementById('m-cost').value    = c.costBasis    || '';
+  document.getElementById('m-price').value   = c.askingPrice  || '';
+  document.getElementById('m-status').value  = c.status  || 'available';
+  document.getElementById('m-notes').value   = c.notes   || '';
+  openModal('add-card-modal');
+}
+
+function saveCard() {
+  const player = document.getElementById('m-player').value.trim();
+  const set    = document.getElementById('m-set').value.trim();
+  if (!player || !set) { showToast('Player and Set are required'); return; }
+
+  const data = {
+    player, set,
+    year:        document.getElementById('m-year').value.trim(),
+    cardNum:     document.getElementById('m-num').value.trim(),
+    sport:       document.getElementById('m-sport').value,
+    gradeCo:     document.getElementById('m-grade-co').value,
+    gradeScore:  document.getElementById('m-grade-score').value,
+    costBasis:   document.getElementById('m-cost').value,
+    askingPrice: document.getElementById('m-price').value,
+    status:      document.getElementById('m-status').value,
+    notes:       document.getElementById('m-notes').value.trim()
+  };
+
+  if (currentEditingCardId) {
+    const idx = inventory.findIndex(c => c.id === currentEditingCardId);
+    if (idx >= 0) inventory[idx] = { ...inventory[idx], ...data };
+  } else {
+    inventory.push({ id: uid(), ...data, createdAt: new Date().toISOString() });
+  }
+  persist(STORE.inventory, inventory);
+  closeModal('add-card-modal');
+  renderInventory();
+  showToast(currentEditingCardId ? 'Card updated! ✏️' : 'Card added! 📦');
+}
+
+function deleteCard(id) {
+  if (!confirm('Remove this card from inventory?')) return;
+  inventory = inventory.filter(c => c.id !== id);
+  persist(STORE.inventory, inventory);
+  renderInventory();
+  showToast('Card removed');
+}
+
+function loadCardIntoComposer(id) {
+  const c = inventory.find(c => c.id === id);
+  if (!c) return;
+  document.getElementById('c-player').value   = c.player       || '';
+  document.getElementById('c-year').value     = c.year         || '';
+  document.getElementById('c-set').value      = c.set          || '';
+  document.getElementById('c-num').value      = c.cardNum      || '';
+  document.getElementById('c-sport').value    = c.sport        || '';
+  document.getElementById('c-grade-co').value = c.gradeCo      || 'Raw';
+  document.getElementById('c-grade-score').value = c.gradeScore || '10';
+  document.getElementById('c-price').value    = c.askingPrice  || '';
+  document.querySelector('.tab[data-tab="composer"]').click();
+  composeUpdate();
+  showToast('Card loaded into Composer! ✍️');
+}
+
+// ============================================================
+// HASHTAG MANAGER
+// ============================================================
+const HASHTAG_LIBRARY = [
+  { label: '⚡ General',    tags: ['#sportscards','#cardcollector','#hobbylife','#whodoyoucollect','#tradingcards','#sportscardsale','#cardshopping'] },
+  { label: '⚾ Baseball',   tags: ['#baseballcards','#topps','#Bowman','#UpperDeck','#mlb','#rookiecard','#baseball'] },
+  { label: '🏀 Basketball', tags: ['#basketballcards','#paniniamerica','#prizm','#nba','#hoops','#selectbasketball','#basketball'] },
+  { label: '🏈 Football',   tags: ['#footballcards','#nfl','#panini','#prestige','#optic','#mosaic','#football'] },
+  { label: '🏒 Hockey',     tags: ['#hockeycards','#nhl','#upperdeck','#opeechee','#hockey'] },
+  { label: '⚽ Other',      tags: ['#soccer','#golf','#mma','#ufc','#wrestling'] },
+  { label: '🏆 Grading',    tags: ['#PSA','#PSA10','#PSA9','#BGS','#BGS95','#SGC','#CGC','#gradedcard','#gemMint','#slabs'] },
+  { label: '🏷️ Brands',    tags: ['#Topps','#Panini','#UpperDeck','#Bowman','#Donruss','#Fleer','#Prizm','#Optic','#Mosaic','#Chrome'] },
+  { label: '🤝 Community',  tags: ['#PConly','#COMC','#eBay','#wantlist','#cardshow','#cardshop','#LGS','#tradingpost'] },
+  { label: '💎 Parallels',  tags: ['#refractor','#prizm','#auto','#patch','#rookie','#1of1','#serialnumbered','#SSP','#shortprint'] }
+];
+
+function renderHashtagLibrary() {
+  const lib = document.getElementById('hashtag-library');
+  lib.innerHTML = HASHTAG_LIBRARY.map(cat => `
+    <div class="category-label">${cat.label}</div>
+    <div class="hashtag-grid">
+      ${cat.tags.map(t =>
+        `<span class="hashtag-chip${selectedHashtags.has(t) ? ' selected' : ''}" onclick="toggleHashtag('${t}')">${t}</span>`
+      ).join('')}
+    </div>
+  `).join('');
+  updateHashtagPreview();
+}
+
+function toggleHashtag(tag) {
+  if (selectedHashtags.has(tag)) selectedHashtags.delete(tag);
+  else selectedHashtags.add(tag);
+  persist(STORE.selectedHashtags, [...selectedHashtags]);
+  renderHashtagLibrary();
+}
+
+function updateHashtagPreview() {
+  const tags = [...selectedHashtags];
+  const preview = document.getElementById('active-hashtag-preview');
+  const total   = document.getElementById('hashtag-char-total');
+  if (!tags.length) {
+    preview.innerHTML = '<span class="text-muted text-sm">Select hashtags below — they\'ll appear here ready to copy.</span>';
+    total.textContent = '0';
+    total.className   = 'char-count';
+  } else {
+    const text = tags.join(' ');
+    preview.textContent = text;
+    total.textContent   = text.length;
+    total.className     = 'char-count' + (text.length > 100 ? ' warning' : '');
+  }
+}
+
+function copySelectedHashtags() {
+  if (!selectedHashtags.size) { showToast('No hashtags selected!'); return; }
+  navigator.clipboard.writeText([...selectedHashtags].join(' ')).then(() => showToast('Hashtags copied! 🏷️'));
+}
+
+function clearSelectedHashtags() {
+  selectedHashtags.clear();
+  persist(STORE.selectedHashtags, []);
+  renderHashtagLibrary();
+  showToast('Selection cleared');
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+function renderAnalytics() {
+  const latest = followerLog.length ? followerLog[followerLog.length - 1] : null;
+  const prev   = followerLog.length > 1 ? followerLog[followerLog.length - 2] : null;
+  const delta  = latest && prev ? latest.count - prev.count : null;
+
+  document.getElementById('analytics-stats').innerHTML = [
+    { label: 'Followers',      value: latest ? latest.count.toLocaleString() + (delta !== null ? (delta >= 0 ? ' +' : ' ') + delta : '') : '—' },
+    { label: 'Impressions',    value: analyticsStats.impressions ? Number(analyticsStats.impressions).toLocaleString() : '—' },
+    { label: 'Engagements',    value: analyticsStats.engagements ? Number(analyticsStats.engagements).toLocaleString() : '—' },
+    { label: 'Pending Tweets', value: queue.filter(q => q.status !== 'posted').length }
+  ].map(s => `
+    <div class="stat-card">
+      <div class="stat-value">${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`
+  ).join('');
+
+  // Restore saved form values
+  const fields = { impressions: 'a-impressions', engagements: 'a-engagements', visits: 'a-visits', newFollowers: 'a-new-followers', bestTweet: 'a-best-tweet' };
+  Object.entries(fields).forEach(([k, id]) => {
+    if (analyticsStats[k]) document.getElementById(id).value = analyticsStats[k];
+  });
+
+  document.getElementById('a-date').value = new Date().toISOString().split('T')[0];
+  drawSparkline();
+}
+
+function logFollowers() {
+  const date  = document.getElementById('a-date').value;
+  const count = parseInt(document.getElementById('a-followers').value, 10);
+  if (!date || isNaN(count)) { showToast('Enter a valid date and count'); return; }
+  const existing = followerLog.findIndex(f => f.date === date);
+  if (existing >= 0) followerLog[existing].count = count;
+  else followerLog.push({ date, count });
+  followerLog.sort((a, b) => a.date.localeCompare(b.date));
+  persist(STORE.followerLog, followerLog);
+  document.getElementById('a-followers').value = '';
+  drawSparkline();
+  renderAnalytics();
+  showToast('Logged! 📈');
+}
+
+function saveAnalyticsStats() {
+  analyticsStats = {
+    impressions:  document.getElementById('a-impressions').value,
+    engagements:  document.getElementById('a-engagements').value,
+    visits:       document.getElementById('a-visits').value,
+    newFollowers: document.getElementById('a-new-followers').value,
+    bestTweet:    document.getElementById('a-best-tweet').value
+  };
+  persist(STORE.analyticsStats, analyticsStats);
+}
+
+function drawSparkline() {
+  const svg    = document.getElementById('sparkline-svg');
+  const legend = document.getElementById('sparkline-legend');
+  if (followerLog.length < 2) {
+    svg.innerHTML = '<text x="50%" y="50%" fill="#6a6050" text-anchor="middle" dominant-baseline="middle" font-size="11" font-family="sans-serif">Log at least 2 data points to see the chart</text>';
+    legend.textContent = '';
+    return;
+  }
+
+  const counts = followerLog.map(d => d.count);
+  const min = Math.min(...counts), max = Math.max(...counts);
+  const range = max - min || 1;
+  const W = 400, H = 80, px = 10, py = 8;
+
+  const points = followerLog.map((d, i) => ({
+    x: px + (i / (followerLog.length - 1)) * (W - 2 * px),
+    y: H - py - ((d.count - min) / range) * (H - 2 * py)
+  }));
+
+  const polyPts  = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const fillPts  = `${px},${H} ` + polyPts + ` ${W - px},${H}`;
+  const circles  = points.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--gold)"/>`).join('');
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="sGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#d4af37" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#d4af37" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${fillPts}" fill="url(#sGrad)"/>
+    <polyline points="${polyPts}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${circles}`;
+
+  const first = followerLog[0], last = followerLog[followerLog.length - 1];
+  const d = last.count - first.count;
+  legend.innerHTML = `<span style="color:var(--gold)">${last.count.toLocaleString()} followers</span> &nbsp;|&nbsp; ${d >= 0 ? '▲' : '▼'} ${Math.abs(d).toLocaleString()} since ${first.date} &nbsp;|&nbsp; ${followerLog.length} points`;
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ============================================================
+// UTILS
+// ============================================================
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch { return iso; }
+}
+
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(function init() {
+  document.getElementById('c-grade-co').addEventListener('change', () => {
+    document.getElementById('grade-score-group').style.display =
+      document.getElementById('c-grade-co').value === 'Raw' ? 'none' : '';
+    composeUpdate();
+  });
+
+  composeUpdate();
+  renderTemplates();
+})();
+</script>
+</body>
+</html>
